@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">WhisperVoiceKeyboardf</string>
+    <string name="app_name">WhisperVoiceKeyboard</string>
+    <string name="whisper_voice_input_label">WhisperVoiceKeyboard</string>
 </resources>

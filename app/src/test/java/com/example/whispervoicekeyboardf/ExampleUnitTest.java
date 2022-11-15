@@ -1,4 +1,4 @@
-package com.example.whispervoicekeyboardf;
+package com.example.WhisperVoiceKeyboard;
 
 import org.junit.Test;
 

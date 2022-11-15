@@ -9,7 +9,34 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.WhisperVoiceKeyboardf"
-        tools:targetApi="31" />
+        android:theme="@style/Theme.WhisperVoiceKeyboard"
+        tools:targetApi="31">
+
+        <service android:name="com.example.whispervoicekeyboardf.VoiceKeyboardService"
+            android:label="@string/whisper_voice_input_label"
+            android:permission="android.permission.BIND_INPUT_METHOD"
+            android:exported="true"
+            tools:ignore="WrongManifestParent">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+    </application>
+
+        <!-- Declares the input method service -->
+
+
+    <!-- Optional: an activity for controlling the IME settings -->
+    <!--    <activity android:name="WhisperVoiceIMESettings"-->
+    <!--        android:label="@string/whisper_voice_input_settings"-->
+    <!--        android:exported="true"-->
+    <!--        tools:ignore="WrongManifestParent">-->
+    <!--        <intent-filter>-->
+    <!--            <action android:name="android.intent.action.MAIN"/>-->
+    <!--        </intent-filter>-->
+    <!--    </activity>-->
+
 
 </manifest>

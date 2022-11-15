@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.whispervoicekeyboardf'
+    namespace 'com.example.WhisperVoiceKeyboard'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.whispervoicekeyboardf"
+        applicationId "com.example.WhisperVoiceKeyboard"
         minSdk 33
         targetSdk 33
         versionCode 1

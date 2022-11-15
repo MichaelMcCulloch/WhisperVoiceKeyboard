@@ -1,4 +1,4 @@
-package com.example.whispervoicekeyboardf;
+package com.example.WhisperVoiceKeyboard;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.example.whispervoicekeyboardf", appContext.getPackageName());
+        assertEquals("com.example.WhisperVoiceKeyboard", appContext.getPackageName());
     }
 }
