@@ -5,11 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/button2"
+    <ToggleButton
+        android:id="@+id/buttonRecord"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Record"
+        android:textOn="@string/VoiceKeyboardService_toggleOnLabel"
+        android:textOff="@string/VoiceKeyboardService_toggleOffLabel"
         app:icon="@android:drawable/ic_btn_speak_now" />
 </LinearLayout>

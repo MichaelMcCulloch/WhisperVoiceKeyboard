@@ -2,6 +2,9 @@ plugins {
     id 'com.android.application'
 }
 
+apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
+
+
 android {
     namespace 'com.example.WhisperVoiceKeyboard'
     compileSdk 33
@@ -26,11 +29,36 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    ndkVersion "21.4.7075529"
+}
+cargo {
+    module  = "src/main/rust"       // Or whatever directory contains your Cargo.toml
+    libname = "rust"          // Or whatever matches Cargo.toml's [package] name.
+    targets = ["arm64", "x86_64"]  // See bellow for a longer list of options
+    profile = 'release'
+    prebuiltToolchains = true
+
+    apiLevels = [
+            "arm64": 30,
+            "x86_64": 30,
+    ]
+}
+afterEvaluate {
+    // The `cargoBuild` task isn't available until after evaluation.
+    android.applicationVariants.all { variant ->
+        def productFlavor = ""
+        variant.productFlavors.each {
+            productFlavor += "${it.name.capitalize()}"
+        }
+        def buildType = "${variant.buildType.name.capitalize()}"
+        tasks["generate${productFlavor}${buildType}Assets"].dependsOn(tasks["cargoBuild"])
+    }
 }
 
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.7.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'

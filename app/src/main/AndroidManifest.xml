@@ -2,18 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.WhisperVoiceKeyboard"
-        tools:targetApi="31">
+        android:theme="@style/Theme.WhisperVoiceKeyboard">
 
-        <service android:name="com.example.whispervoicekeyboardf.VoiceKeyboardService"
-            android:label="@string/whisper_voice_input_label"
+        <service android:name="com.example.whisperVoiceRecognition.VoiceKeyboardInputMethodService"
+            android:label="@string/VoiceKeyboardService_label"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true"
             tools:ignore="WrongManifestParent">
@@ -23,20 +24,8 @@
             <meta-data android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
+
+
     </application>
-
-        <!-- Declares the input method service -->
-
-
-    <!-- Optional: an activity for controlling the IME settings -->
-    <!--    <activity android:name="WhisperVoiceIMESettings"-->
-    <!--        android:label="@string/whisper_voice_input_settings"-->
-    <!--        android:exported="true"-->
-    <!--        tools:ignore="WrongManifestParent">-->
-    <!--        <intent-filter>-->
-    <!--            <action android:name="android.intent.action.MAIN"/>-->
-    <!--        </intent-filter>-->
-    <!--    </activity>-->
-
 
 </manifest>
