@@ -28,6 +28,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 //                ActivityCompat.requestPermissions (VoiceKeyboardInputMethodService.this, new String[]{Manifest.permission.RECORD_AUDIO},
 //                        REQUEST_RECORD_PERMISSION);
                 Log.d("DSFLJ", new RustLib().helloWorld());
+                Log.d("DSFLJ", new RustLib().retrieveAssetPub(getAssets()));
                 startVoiceService();
             } else {
                 stopVoiceService();
