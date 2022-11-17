@@ -4,12 +4,8 @@ import android.content.Context;
 import android.content.res.AssetManager;
 
 public class RustLib  {
-    static {
-        System.loadLibrary("rust");
-    }
-    public String helloWorld() {
-       return hello("World");
-    }
+
+
     public void retrieveAssetPub(AssetManager assetManager) {
         retrieveAsset(assetManager);
     }

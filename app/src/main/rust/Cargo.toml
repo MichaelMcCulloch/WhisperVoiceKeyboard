@@ -19,3 +19,4 @@ lto = true
 [lib]
 name = "rust"
 crate-type = ["cdylib"]
+

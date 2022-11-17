@@ -13,6 +13,18 @@ import java.io.InputStream;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        System.loadLibrary("rust");
+        RustLib.init(getBaseContext());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     WhisperVoiceTranscriptionDriver driver = new WhisperVoiceTranscriptionDriver();
 
     @Override
@@ -26,21 +38,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
         recordButton.setOnCheckedChangeListener((button,checked) -> {
             if (checked) {
-//                ActivityCompat.requestPermissions (VoiceKeyboardInputMethodService.this, new String[]{Manifest.permission.RECORD_AUDIO},
-//                        REQUEST_RECORD_PERMISSION);
-//                Log.d("Rust FFI", new RustLib().helloWorld());
 
-
-                AssetManager assetManager = getAssets();
-                try {
-                    InputStream is = assetManager.open("whisper.tflite");
-                    Log.d("VoiceKeyboardInputMethodService", ""+is.available());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                RustLib rustLib = new RustLib();
-                rustLib.init(getBaseContext());
-                rustLib.retrieveAssetPub(assetManager);
+                RustLib r = new RustLib();
+                r.retrieveAssetPub(getAssets());
                 startVoiceService();
             } else {
                 stopVoiceService();

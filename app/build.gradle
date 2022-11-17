@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
 }
 
-apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
+apply plugin: "com.github.willir.rust.cargo-ndk-android"
 
 
 android {
@@ -30,31 +30,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    ndkVersion "21.4.7075529"
+    ndkVersion "25.1.8937393"
 }
-cargo {
-    module  = "src/main/rust"       // Or whatever directory contains your Cargo.toml
-    libname = "rust"          // Or whatever matches Cargo.toml's [package] name.
+cargoNdk {
+    module  = "app/src/main/rust"       // Or whatever directory contains your Cargo.toml
     targets = ["arm64", "x86_64"]  // See bellow for a longer list of options
-    profile = 'release'
-    prebuiltToolchains = true
+    buildType = "release"
+    apiLevel = 33
+}
 
-    apiLevels = [
-            "arm64": 30,
-            "x86_64": 30,
-    ]
-}
-afterEvaluate {
-    // The `cargoBuild` task isn't available until after evaluation.
-    android.applicationVariants.all { variant ->
-        def productFlavor = ""
-        variant.productFlavors.each {
-            productFlavor += "${it.name.capitalize()}"
-        }
-        def buildType = "${variant.buildType.name.capitalize()}"
-        tasks["generate${productFlavor}${buildType}Assets"].dependsOn(tasks["cargoBuild"])
-    }
-}
 
 dependencies {
 
