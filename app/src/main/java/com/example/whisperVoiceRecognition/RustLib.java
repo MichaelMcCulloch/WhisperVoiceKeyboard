@@ -1,5 +1,6 @@
 package com.example.whisperVoiceRecognition;
 
+import android.content.Context;
 import android.content.res.AssetManager;
 
 public class RustLib  {
@@ -9,11 +10,12 @@ public class RustLib  {
     public String helloWorld() {
        return hello("World");
     }
-    public String retrieveAssetPub(AssetManager assetManager) {
-       return retrieveAsset(assetManager);
+    public void retrieveAssetPub(AssetManager assetManager) {
+        retrieveAsset(assetManager);
     }
 
     private static native String hello(String input);
-    private static native String retrieveAsset(AssetManager assetManager);
+    private static native void retrieveAsset(AssetManager assetManager);
+    public static native void initLogger(Context context);
 
 }

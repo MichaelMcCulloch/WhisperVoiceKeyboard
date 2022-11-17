@@ -8,5 +8,4 @@ public class WhisperVoiceTranscriptionDriver {
         return "Hello There";
     }
 
-    private native String helloWorldJNI();
 }

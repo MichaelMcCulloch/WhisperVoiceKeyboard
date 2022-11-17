@@ -5,9 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-jni = { version = "0.19.0", default-features = false }
-ndk = "0.7.0"
+jni = { version = "0.19.0", features = ["default"]}
+jni-sys = { version = "0.3.0" } 
+ndk = {version = "0.7.0", features = ["api-level-30"] }
 ndk-sys = "0.4.0"
+ndk-context= "0.1.1"
+log = "0.4.17"
+android_logger = "0.11.1"
 
 [profile.release]
 lto = true
