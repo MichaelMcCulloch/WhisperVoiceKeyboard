@@ -1,33 +1,14 @@
 use std::any::Any;
-use std::borrow::BorrowMut;
-use std::ffi::{c_void, CStr, CString, NulError};
+use std::ffi::{c_void, CString};
 use std::ptr::NonNull;
-
-use android_logger::Config;
-
-use jni::objects::JString;
-use jni::{
-    objects::{JClass, JObject, JValue},
-    JNIEnv,
-};
-
-use jni::sys::{jbyteArray, jint, jlong, jstring};
-use jni_sys::JavaVM;
-use log::Level;
-use ndk::asset::Asset;
-use ndk::asset::AssetManager;
-use ndk_sys::AAssetManager_fromJava;
 
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_hello(
-    env: JNIEnv,
-    // This is the class that owns our static method. It's not going to be used,
-    // but still must be present to match the expected signature of a static
-    // native method.
-    _class: JClass,
-    input: JString,
-) -> jstring {
+    env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+    input: jni::objects::JString,
+) -> jni::sys::jstring {
     // First, we have to get the string out of Java. Check out the `strings`
     // module for more info on how this works.
     let input: String = env
@@ -47,18 +28,15 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_hello(
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_initLogger(
-    env: JNIEnv,
-    // This is the class that owns our static method. It's not going to be used,
-    // but still must be present to match the expected signature of a static
-    // native method.
-    _class: JClass,
-    mut context: JObject,
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
+    env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+    mut context: jni::objects::JObject,
 ) {
-    android_logger::init_once(Config::default().with_min_level(Level::Trace));
+    android_logger::init_once(android_logger::Config::default().with_min_level(log::Level::Trace));
 
     unsafe {
-        let vm: *mut JavaVM = env.get_java_vm().unwrap().get_java_vm_pointer();
+        let vm: *mut jni_sys::JavaVM = env.get_java_vm().unwrap().get_java_vm_pointer();
         ndk_context::initialize_android_context(
             vm as *mut _ as *mut c_void,
             &mut context as *mut _ as *mut c_void,
@@ -74,22 +52,21 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_initLogger(
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset(
-    env: JNIEnv,
-    // This is the class that owns our static method. It's not going to be used,
-    // but still must be present to match the expected signature of a static
-    // native method.
-    _class: JClass,
-    assetManager: JObject,
+    env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+    asset_manager_object: jni::objects::JObject,
 ) {
-    let manager_ptr = unsafe { AAssetManager_fromJava(env.get_native_interface(), *assetManager) };
-    let manager = unsafe {
-        AssetManager::from_ptr(NonNull::<ndk_sys::AAssetManager>::new_unchecked(
-            manager_ptr,
+    let aasset_manager_pointer = unsafe {
+        ndk_sys::AAssetManager_fromJava(env.get_native_interface(), *asset_manager_object)
+    };
+    let asset_manager = unsafe {
+        ndk::asset::AssetManager::from_ptr(NonNull::<ndk_sys::AAssetManager>::new_unchecked(
+            aasset_manager_pointer,
         ))
     };
-    log::info!("{:?}", manager.type_id());
-    let output = match CString::new("whisper.tflite") {
-        Ok(cstring) => match manager.open(&cstring) {
+    log::info!("{:?}", asset_manager.type_id());
+    match CString::new("whisper.tflite") {
+        Ok(cstring) => match asset_manager.open(&cstring) {
             Some(asset) => log::info!("Success opening asset!"),
             None => log::warn!("Fail Open"),
         },
