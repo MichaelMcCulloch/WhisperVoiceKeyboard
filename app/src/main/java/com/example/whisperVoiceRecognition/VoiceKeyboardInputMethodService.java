@@ -1,13 +1,10 @@
 package com.example.whisperVoiceRecognition;
 
-import android.Manifest;
 import android.content.res.AssetManager;
 import android.inputmethodservice.InputMethodService;
 import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
-
-import androidx.core.app.ActivityCompat;
 
 import com.example.WhisperVoiceKeyboard.R;
 
@@ -42,7 +39,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                     e.printStackTrace();
                 }
                 RustLib rustLib = new RustLib();
-                rustLib.initLogger(getBaseContext());
+                rustLib.init(getBaseContext());
                 rustLib.retrieveAssetPub(assetManager);
                 startVoiceService();
             } else {

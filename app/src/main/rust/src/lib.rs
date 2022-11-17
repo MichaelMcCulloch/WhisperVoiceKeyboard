@@ -41,9 +41,6 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
             vm as *mut _ as *mut c_void,
             &mut context as *mut _ as *mut c_void,
         );
-        let ctx = ndk_context::android_context();
-        // let vm = unsafe { env.get_java_vm() }.unwrap();
-        // let env = vm.attach_current_thread().unwrap();
     }
 
     log::info!("Succeeded in init context")

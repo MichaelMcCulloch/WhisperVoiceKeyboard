@@ -16,6 +16,6 @@ public class RustLib  {
 
     private static native String hello(String input);
     private static native void retrieveAsset(AssetManager assetManager);
-    public static native void initLogger(Context context);
+    public static native void init(Context context);
 
 }
