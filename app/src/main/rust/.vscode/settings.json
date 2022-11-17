@@ -7,6 +7,8 @@
     "rust-analyzer.checkOnSave.overrideCommand": [
         "cargo",
         "ndk",
+        "-p",
+        "30",
         "-t",
         "x86_64",
         "check",
@@ -16,6 +18,8 @@
     "rust-analyzer.cargo.buildScripts.overrideCommand": [
         "cargo",
         "ndk",
+        "-p",
+        "30",
         "-t",
         "x86_64",
         "check",
@@ -25,7 +29,6 @@
     "rust-analyzer.trace.server": "verbose",
     "rust-analyzer.cargo.extraEnv": {
         "ANDROID_NDK_HOME": "/home/michael/Android/Sdk/ndk/25.1.8937393/",
-        "PATH": "$PATH:/home/michael/.cargo/bin",
     },
     "rust-analyzer.cargo.buildScripts.invocationLocation": "workspace"
 }
