@@ -44,9 +44,9 @@ cargoNdk {
             "ANDROID_SDK_HOME":"/home/michael/Android/Sdk/",
             "ANDROID_API_LEVEL":33,
             "ANDROID_BUILD_TOOLS_VERSION":33,
-            "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID":"/home/michael/Dev/openai-whisper/android_app/Whisper-TFLIte-Android-Example/app/src/main/cpp/tf-lite-api/generated-libs/arm64-v8a/libtensorflowlite.so",
-            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID":"/home/michael/Dev/openai-whisper/android_app/Whisper-TFLIte-Android-Example/app/src/main/cpp/tf-lite-api/generated-libs/x86_64/libtensorflowlite.so",
-            "TFLITEC_PREBUILT_PATH_ARMV7_LINUX_ANDROIDEABI":"/home/michael/Dev/openai-whisper/android_app/Whisper-TFLIte-Android-Example/app/src/main/cpp/tf-lite-api/generated-libs/armeabi-v7a/libtensorflowlite.so"
+            "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID":"app/src/main/jniLibs/arm64-v8a/libtensorflowlite.so",
+            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID":"app/src/main/jniLibs/x86_64/libtensorflowlite.so",
+            "TFLITEC_PREBUILT_PATH_ARMV7_LINUX_ANDROIDEABI":"app/src/main/jniLibs//armeabi-v7a/libtensorflowlite.so"
     ]
 }
 
