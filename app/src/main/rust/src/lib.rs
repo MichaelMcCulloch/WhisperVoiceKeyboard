@@ -64,7 +64,15 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset
     log::info!("{:?}", asset_manager.type_id());
     match CString::new("whisper.tflite") {
         Ok(cstring) => match asset_manager.open(&cstring) {
-            Some(asset) => log::info!("Success opening asset!"),
+            Some(mut asset) => {
+                log::info!("Success opening asset!");
+                match asset.get_buffer() {
+                    Ok(b) => {
+                        log::info!("Success Loading Model!")
+                    }
+                    Err(_) => {}
+                }
+            }
             None => log::warn!("Fail Open"),
         },
         Err(_) => log::info!("Fail String"),
