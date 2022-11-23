@@ -1,10 +1,12 @@
 use std::any::Any;
 use std::ffi::{c_void, CString};
 use std::fs::File;
+use std::panic::catch_unwind;
 use std::ptr::NonNull;
 
 mod asset_helper;
 
+use jni_sys::JNI_VERSION_1_8;
 use tflitec::interpreter::{Interpreter, Options};
 
 use crate::asset_helper::load_asset_manager;

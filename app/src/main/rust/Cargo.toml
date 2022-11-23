@@ -12,7 +12,8 @@ ndk-sys = "0.4.0"
 ndk-context= "0.1.1"
 log = "0.4.17"
 android_logger = "0.11.1"
-tflitec = { github = "https://github.com/MichaelMcCulloch/tflitec-rs", features = ["xnnpack"]}
+anyhow= "1.0.66"
+tflitec = { git = "https://github.com/MichaelMcCulloch/tflitec-rs", features = ["xnnpack"], branch = "main"}
 
 [profile.release]
 lto = true

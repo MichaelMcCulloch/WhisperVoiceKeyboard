@@ -45,7 +45,7 @@ cargoNdk {
     def sdkDir = properties.getProperty('sdk.dir')
     def ndkDir = properties.getProperty('ndk.dir')
 
-
+    librariesNames = ["librust.so"]
     extraCargoEnv =[
             "ANDROID_SDK_HOME":"${sdkDir}",
             "ANDROID_NDK_HOME":"${ndkDir}",
@@ -54,6 +54,9 @@ cargoNdk {
             "ANDROID_API_LEVEL":apiLevel ,
             "ANDROID_BUILD_TOOLS_VERSION":"33.0.0",
             "ANDROID_HOME":"${sdkDir}/build-tools/21.1.2",
+            "BINDGEN_EXTRA_CLANG_ARGS_x86_64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
+            "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/"
+
     ]
 }
 
