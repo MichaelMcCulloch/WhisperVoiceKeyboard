@@ -1,6 +1,15 @@
 use std::any::Any;
 use std::ffi::{c_void, CString};
+use std::fs::File;
 use std::ptr::NonNull;
+
+mod asset_helper;
+
+use tflitec::interpreter::{Interpreter, Options};
+
+use crate::asset_helper::load_asset_manager;
+
+const WHISPER_TFLITE: &str = "whisper.tflite";
 
 #[no_mangle]
 #[allow(non_snake_case)]
@@ -53,28 +62,26 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset
     _class: jni::objects::JClass,
     asset_manager_object: jni::objects::JObject,
 ) {
-    let aasset_manager_pointer = unsafe {
-        ndk_sys::AAssetManager_fromJava(env.get_native_interface(), *asset_manager_object)
-    };
-    let asset_manager = unsafe {
-        ndk::asset::AssetManager::from_ptr(NonNull::<ndk_sys::AAssetManager>::new_unchecked(
-            aasset_manager_pointer,
-        ))
-    };
-    log::info!("{:?}", asset_manager.type_id());
-    match CString::new("whisper.tflite") {
-        Ok(cstring) => match asset_manager.open(&cstring) {
-            Some(mut asset) => {
-                log::info!("Success opening asset!");
-                match asset.get_buffer() {
-                    Ok(b) => {
-                        log::info!("Success Loading Model!")
-                    }
-                    Err(_) => {}
-                }
-            }
-            None => log::warn!("Fail Open"),
-        },
-        Err(_) => log::info!("Fail String"),
-    };
+    let asset_manager = load_asset_manager(env, asset_manager_object);
+
+    let mut tflite_file = asset_helper::load_asset_buffer(WHISPER_TFLITE, &asset_manager)
+        .expect(format!("Could not load {}", WHISPER_TFLITE).as_str());
+    let tflite_buf = tflite_file
+        .get_buffer()
+        .expect("File opened, but no data read from buffer!");
+
+    let _interpreter = Interpreter::with_model_bytes(
+        tflite_buf,
+        tflite_buf.len() as u64,
+        Some(Options::default()),
+    )
+    .expect(
+        format!(
+            "Could not create a TfLiteC-rs Interpreter with a collection of bits named {}",
+            WHISPER_TFLITE
+        )
+        .as_str(),
+    );
+
+    log::info!("Success Loading Model!");
 }
