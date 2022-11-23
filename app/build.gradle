@@ -30,7 +30,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    ndkVersion '21.4.7075529' 
+    ndkVersion '25.1.8937393'
     buildToolsVersion '33.0.0'
 
 
@@ -38,7 +38,7 @@ android {
 cargoNdk {
     targets = ["arm64", "x86_64"]  // See bellow for a longer list of options
     buildType = "release"
-    apiLevel = 21
+    apiLevel = 33
 
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
@@ -53,7 +53,7 @@ cargoNdk {
             "ANDROID_SDK_VERSION":apiLevel ,
             "ANDROID_API_LEVEL":apiLevel ,
             "ANDROID_BUILD_TOOLS_VERSION":"33.0.0",
-            "ANDROID_HOME":"${sdkDir}/build-tools/21.1.2",
+            "ANDROID_HOME":"${sdkDir}/build-tools/33.0.0",
             "BINDGEN_EXTRA_CLANG_ARGS_x86_64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
             "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
             "TFLITEC_PREBUILT_PATH_x86_64_LINUX_ANDROID":"${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
