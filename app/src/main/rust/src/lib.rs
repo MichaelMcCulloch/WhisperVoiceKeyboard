@@ -56,6 +56,9 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
     env: jni::JNIEnv,
     _class: jni::objects::JClass,
     mut context: jni::objects::JObject,
+    device_id: jint,
+    sample_rate: jint,
+    channels: jint,
 ) {
     android_logger::init_once(android_logger::Config::default().with_min_level(log::Level::Trace));
 
@@ -65,9 +68,30 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
             vm as *mut _ as *mut c_void,
             &mut context as *mut _ as *mut c_void,
         );
+        DEVICE_ID.replace(device_id);
+        SAMPLE_RATE.replace(sample_rate);
+        CHANNELS.replace(channels);
     }
 
     log::info!("Succeeded in init context")
+}
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_deinit(
+    _env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+) {
+    unsafe {
+        ndk_context::release_android_context();
+        let device_id = DEVICE_ID.take();
+        assert!(device_id.is_some());
+        let sample_rate = SAMPLE_RATE.take();
+        assert!(sample_rate.is_some());
+        let channels = CHANNELS.take();
+        assert!(channels.is_some());
+    }
+
+    log::info!("Succeeded in deinit context")
 }
 
 #[no_mangle]
