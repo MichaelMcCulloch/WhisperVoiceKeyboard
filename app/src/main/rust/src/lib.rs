@@ -124,3 +124,33 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset
 
     log::info!("Success Loading Model!");
 }
+
+#[no_mangle]
+#[allow(non_snake_case)]
+fn Java_com_example_whisperVoiceRecognition_RustLib_sampleAudio(
+    _env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+) -> anyhow::Result<()> {
+    let builder = AudioStreamBuilder::new()?
+        .device_id(unsafe { DEVICE_ID.expect("Lib not initialized") })
+        .direction(AudioDirection::Input)
+        .sharing_mode(AudioSharingMode::Exclusive)
+        .sample_rate(unsafe { SAMPLE_RATE.expect("Lib not initialized") })
+        .channel_count(unsafe { CHANNELS.expect("Lib not initialized") })
+        .format(ndk::audio::AudioFormat::PCM_Float)
+        .buffer_capacity_in_frames(44100 * 30)
+        .data_callback(Box::new(|a, b, c| -> AudioCallbackResult {
+            let float_arr = b as *mut c_float;
+            unsafe {
+                let vec = slice::from_raw_parts(float_arr, c as usize).to_vec();
+                log::info!("{:?}", vec);
+            }
+            drop(b);
+            AudioCallbackResult::Continue
+        }))
+        .open_stream()?;
+
+    builder.request_start()?;
+    thread::sleep(Duration::from_secs(10));
+    Ok(())
+}

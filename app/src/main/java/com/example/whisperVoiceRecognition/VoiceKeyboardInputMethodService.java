@@ -1,15 +1,18 @@
 package com.example.whisperVoiceRecognition;
 
-import android.content.res.AssetManager;
+import android.content.Context;
 import android.inputmethodservice.InputMethodService;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
 
 import com.example.WhisperVoiceKeyboard.R;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
@@ -17,11 +20,31 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
-        RustLib.init(getBaseContext());
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
+            Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi).filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom")).findAny();
+
+
+            if (bottomMic.isPresent()) {
+                OptionalInt sampleRate = Arrays.stream(bottomMic.get().getSampleRates()).max();
+                OptionalInt channels = Arrays.stream(bottomMic.get().getChannelCounts()).min();
+                if (sampleRate.isPresent()){
+                    RustLib.init(getApplicationContext(), bottomMic.get().getId(), sampleRate.getAsInt(),channels.getAsInt());
+
+                }
+
+            }
+
+        }
+
+
     }
+
 
     @Override
     public void onDestroy() {
+        RustLib.deinit();
         super.onDestroy();
     }
 
@@ -33,14 +56,10 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 getLayoutInflater().inflate(R.layout.keyboard, null);
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
 
-
-
-
         recordButton.setOnCheckedChangeListener((button,checked) -> {
             if (checked) {
-
                 RustLib r = new RustLib();
-                r.retrieveAssetPub(getAssets());
+                r.sampleAudio();
                 startVoiceService();
             } else {
                 stopVoiceService();
