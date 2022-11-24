@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.WhisperVoiceKeyboard"
-        minSdk 33
+        minSdk 30
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -38,7 +38,7 @@ android {
 cargoNdk {
     targets = ["arm64", "x86_64"]  // See bellow for a longer list of options
     buildType = "release"
-    apiLevel = 33
+    apiLevel = 30
 
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
@@ -54,9 +54,9 @@ cargoNdk {
             "ANDROID_API_LEVEL":apiLevel ,
             "ANDROID_BUILD_TOOLS_VERSION":"33.0.0",
             "ANDROID_HOME":"${sdkDir}/build-tools/33.0.0",
-            "BINDGEN_EXTRA_CLANG_ARGS_x86_64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
+            "BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
             "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
-            "TFLITEC_PREBUILT_PATH_x86_64_LINUX_ANDROID":"${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
+            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID":"${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
             "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID":"${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
 
     ]
@@ -64,7 +64,7 @@ cargoNdk {
 
 
 dependencies {
-
+    implementation 'com.google.guava:guava:31.1-jre'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.7.0'
