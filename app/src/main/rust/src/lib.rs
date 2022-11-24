@@ -1,17 +1,30 @@
+use core::slice;
 use std::any::Any;
-use std::ffi::{c_void, CString};
+use std::ffi::{c_float, c_void, CString};
 use std::fs::File;
 use std::panic::catch_unwind;
 use std::ptr::NonNull;
+use std::thread;
+use std::time::Duration;
 
 mod asset_helper;
 
-use jni_sys::JNI_VERSION_1_8;
+use jni::objects::{JObject, JValue};
+use jni_sys::{jint, JNI_VERSION_1_8};
+use ndk::audio::{
+    AudioCallbackResult, AudioDirection, AudioSharingMode, AudioStream, AudioStreamBuilder,
+};
 use tflitec::interpreter::{Interpreter, Options};
 
 use crate::asset_helper::load_asset_manager;
 
 const WHISPER_TFLITE: &str = "whisper.tflite";
+const GET_DEVICES_OUTPUTS: jni::sys::jint = 2;
+const GET_DEVICES_INPUTS: jni::sys::jint = 1;
+
+static mut DEVICE_ID: Option<i32> = None;
+static mut SAMPLE_RATE: Option<i32> = None;
+static mut CHANNELS: Option<i32> = None;
 
 #[no_mangle]
 #[allow(non_snake_case)]
@@ -34,7 +47,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_hello(
         .expect("Couldn't create java string!");
 
     // Finally, extract the raw pointer to return.
-    output.into_inner()
+    output.into_raw()
 }
 
 #[no_mangle]
