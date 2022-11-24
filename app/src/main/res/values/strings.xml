@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">WhisperVoiceKeyboard</string>
-    <string name="WhisperVoiceRecognitionService_label">VoiceRecognitionService</string>
+    <string name="app_name">Whisper Voice Keyboard Rust</string>
+    <string name="WhisperVoiceRecognitionService_label">Whisper Voice Recognition Service Rust</string>
     <string name="VoiceKeyboardService_toggleOffLabel">Record</string>
     <string name="VoiceKeyboardService_toggleOnLabel">Transcribing...</string>
-    <string name="VoiceKeyboardService_label">VoiceKeyboardService</string>
+    <string name="VoiceKeyboardService_label">Whisper Voice Keyboard Service</string>
 </resources>
