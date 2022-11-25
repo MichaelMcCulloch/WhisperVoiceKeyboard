@@ -40,12 +40,14 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
 
         if (bottomMic.isPresent()) {
+            //TODO: Is this the best microphone? I assume so.
+            //TODO: Is this sample rate + channel combination supported? What is the preferred format, FLOAT or I16?
             OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates()).max();
             OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts()).min();
             if (maxSampleRate.isPresent() && minChannels.isPresent()) {
                 AudioDeviceConfig audioDeviceConfig = new AudioDeviceConfig(bottomMic.get().getId(), maxSampleRate.getAsInt(), minChannels.getAsInt());
 
-                
+
                 return Optional.of(audioDeviceConfig);
             }
             return Optional.empty();
