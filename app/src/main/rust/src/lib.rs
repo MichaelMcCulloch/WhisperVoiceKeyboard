@@ -19,7 +19,7 @@ use ndk::audio::{
 };
 use tflitec::interpreter::{Interpreter, Options};
 
-use crate::asset_helper::load_asset_manager;
+use crate::asset_helper::get_asset_manager;
 
 const WHISPER_TFLITE: &str = "whisper.tflite";
 const GET_DEVICES_OUTPUTS: jni::sys::jint = 2;
@@ -85,7 +85,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset
     _class: jni::objects::JClass,
     asset_manager_object: jni::objects::JObject,
 ) {
-    let asset_manager = load_asset_manager(env, asset_manager_object);
+    let asset_manager = get_asset_manager(env, asset_manager_object);
 
     let mut tflite_file = asset_helper::load_asset_buffer(WHISPER_TFLITE, &asset_manager)
         .expect(format!("Could not load {}", WHISPER_TFLITE).as_str());
@@ -109,10 +109,17 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset
     log::info!("Success Loading Model!");
 }
 
+fn start_recording() -> anyhow::Result<()> {
+    Ok(())
+}
+fn stop_recording_and_analyze() -> anyhow::Result<String> {
+    Ok("Hello There".to_string())
+}
+
 fn sample_audio() -> anyhow::Result<()> {
     match unsafe { (DEVICE_ID, SAMPLE_RATE, CHANNELS) } {
         (Some(device_id), Some(sample_rate), Some(channels)) => {
-            let builder = AudioStreamBuilder::new()?
+            let input_stream = AudioStreamBuilder::new()?
                 .device_id(device_id)
                 .direction(AudioDirection::Input)
                 .sharing_mode(AudioSharingMode::Shared)
@@ -120,10 +127,9 @@ fn sample_audio() -> anyhow::Result<()> {
                 .sample_rate(sample_rate)
                 .channel_count(channels)
                 .format(ndk::audio::AudioFormat::PCM_Float)
-                .buffer_capacity_in_frames(44100 * 30)
                 .data_callback(Box::new(|a, b, c| -> AudioCallbackResult {
                     // let float_arr = b as *mut c_float;
-                    log::info!("{:?}", c);
+                    // log::info!("{:?}", c);
 
                     // unsafe {
                     //     let vec = slice::from_raw_parts(float_arr, c as usize).to_vec();
@@ -132,7 +138,10 @@ fn sample_audio() -> anyhow::Result<()> {
                 }))
                 .open_stream()?;
 
-            builder.request_start()?;
+            let sample_rate = input_stream.get_sample_rate();
+            let frames_per_burst = input_stream.get_frames_per_burst();
+
+            input_stream.request_start()?;
             thread::sleep(Duration::from_secs(10));
             Ok(())
         }

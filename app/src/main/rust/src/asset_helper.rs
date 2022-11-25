@@ -15,7 +15,7 @@ pub fn load_asset_buffer(asset_name: &str, asset_manager: &AssetManager) -> anyh
     Ok(asset)
 }
 
-pub fn load_asset_manager(env: JNIEnv, asset_manager_object: JObject) -> AssetManager {
+pub fn get_asset_manager(env: JNIEnv, asset_manager_object: JObject) -> AssetManager {
     let aasset_manager_pointer = unsafe {
         ndk_sys::AAssetManager_fromJava(env.get_native_interface(), *asset_manager_object)
     };

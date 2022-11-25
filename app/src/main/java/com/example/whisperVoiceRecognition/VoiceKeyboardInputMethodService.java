@@ -20,33 +20,38 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
-        initializeLibraryAudioConfig();
-    }
-
-    private void initializeLibraryAudioConfig() {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-            Log.i("VoiceKeyboardInputMethodService", "Number of inputs: " + adi.length);
-            Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi).map(x -> {
-                Log.i("VoiceKeyboardInputMethodService", "Placement: " + x.getAddress());
-                return x;
-            }).filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom")).findAny();
-
-
-            if (bottomMic.isPresent()) {
-                OptionalInt sampleRate = Arrays.stream(bottomMic.get().getSampleRates()).max();
-                OptionalInt channels = Arrays.stream(bottomMic.get().getChannelCounts()).min();
-                if (sampleRate.isPresent()){
-                    RustLib.init(getApplicationContext(), bottomMic.get().getId(), sampleRate.getAsInt(),channels.getAsInt());
-
-                }
-
-            }
+        Optional<AudioDeviceConfig> bottomMic = getBottomMicrophone();
+        if (bottomMic.isPresent()) {
+            RustLib.init(getApplicationContext(), bottomMic.get().getDeviceId(), bottomMic.get().getDeviceSampleRate(), bottomMic.get().getDeviceChannels());
 
         }
+
     }
 
+
+    private Optional<AudioDeviceConfig> getBottomMicrophone() {
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
+        Log.i("VoiceKeyboardInputMethodService", "Number of inputs: " + adi.length);
+        Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi).map(x -> {
+            Log.i("VoiceKeyboardInputMethodService", "Placement: " + x.getAddress());
+            return x;
+        }).filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom")).findAny();
+
+
+        if (bottomMic.isPresent()) {
+            OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates()).max();
+            OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts()).min();
+            if (maxSampleRate.isPresent() && minChannels.isPresent()) {
+                AudioDeviceConfig audioDeviceConfig = new AudioDeviceConfig(bottomMic.get().getId(), maxSampleRate.getAsInt(), minChannels.getAsInt());
+
+                
+                return Optional.of(audioDeviceConfig);
+            }
+            return Optional.empty();
+        }
+        return Optional.empty();
+    }
 
     @Override
     public void onDestroy() {
@@ -62,7 +67,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 getLayoutInflater().inflate(R.layout.keyboard, null);
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
 
-        recordButton.setOnCheckedChangeListener((button,checked) -> {
+        recordButton.setOnCheckedChangeListener((button, checked) -> {
             if (checked) {
                 RustLib r = new RustLib();
                 r.sampleAudio();
@@ -76,15 +81,14 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     }
 
 
-
     private void startVoiceService() {
-        Log.i("VoiceKeyboardService","Init Service");
+        Log.i("VoiceKeyboardService", "Init Service");
         driver.startListening();
 
     }
 
     private void stopVoiceService() {
-        Log.i("VoiceKeyboardService","Term Service");
+        Log.i("VoiceKeyboardService", "Term Service");
         String text = driver.stopListeningAndRetrieveText();
         getCurrentInputConnection().commitText(text, text.length());
 
