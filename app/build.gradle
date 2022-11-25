@@ -34,6 +34,8 @@ android {
     buildToolsVersion '33.0.0'
 
 
+
+
 }
 cargoNdk {
     targets = ["arm64", "x86_64"]  // See bellow for a longer list of options
