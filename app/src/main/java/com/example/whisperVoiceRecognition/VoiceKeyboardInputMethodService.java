@@ -20,10 +20,18 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
+        initializeLibraryAudioConfig();
+    }
+
+    private void initializeLibraryAudioConfig() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-            Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi).filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom")).findAny();
+            Log.i("VoiceKeyboardInputMethodService", "Number of inputs: " + adi.length);
+            Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi).map(x -> {
+                Log.i("VoiceKeyboardInputMethodService", "Placement: " + x.getAddress());
+                return x;
+            }).filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom")).findAny();
 
 
             if (bottomMic.isPresent()) {
@@ -37,14 +45,12 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             }
 
         }
-
-
     }
 
 
     @Override
     public void onDestroy() {
-        RustLib.deinit();
+        RustLib.uninit();
         super.onDestroy();
     }
 
