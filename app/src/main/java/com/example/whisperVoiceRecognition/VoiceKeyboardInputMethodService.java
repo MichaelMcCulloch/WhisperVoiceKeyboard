@@ -28,7 +28,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
     }
 
-
     private Optional<AudioDeviceConfig> getBottomMicrophone() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
