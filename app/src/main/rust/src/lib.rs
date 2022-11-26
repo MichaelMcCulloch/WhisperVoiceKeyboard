@@ -22,30 +22,31 @@ use tflitec::interpreter::{Interpreter, Options};
 use crate::asset_helper::get_asset_manager;
 
 const WHISPER_TFLITE: &str = "whisper.tflite";
+const FILTERS_VOCAB_GEN_BIN: &str = "filters_vocab_gen.bin";
 const GET_DEVICES_OUTPUTS: jni::sys::jint = 2;
 const GET_DEVICES_INPUTS: jni::sys::jint = 1;
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_hello(
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecording(
+    _env: jni::JNIEnv,
+    _class: jni::objects::JClass,
+    device_id: jint,
+    sample_rate: jint,
+    channels: jint,
+) -> jni::sys::jboolean {
+    true.into()
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
     env: jni::JNIEnv,
     _class: jni::objects::JClass,
-    input: jni::objects::JString,
 ) -> jni::sys::jstring {
-    // First, we have to get the string out of Java. Check out the `strings`
-    // module for more info on how this works.
-    let input: String = env
-        .get_string(input)
-        .expect("Couldn't get java string!")
-        .into();
-
-    // Then we have to create a new Java string to return. Again, more info
-    // in the `strings` module.
     let output = env
-        .new_string(format!("Hello, {}!", input))
+        .new_string(format!("capital T true"))
         .expect("Couldn't create java string!");
-
-    // Finally, extract the raw pointer to return.
     output.into_raw()
 }
 
@@ -55,11 +56,8 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
     env: jni::JNIEnv,
     _class: jni::objects::JClass,
     context: jni::objects::JObject,
-    device_id: jint,
-    sample_rate: jint,
-    channels: jint,
 ) {
-    lifetime::init(env, context, device_id, sample_rate, channels);
+    lifetime::init(env, context);
 }
 
 #[no_mangle]
@@ -70,86 +68,84 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_uninit(
 ) {
     lifetime::uninit();
 }
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_sampleAudio(
-    _env: jni::JNIEnv,
-    _class: jni::objects::JClass,
-) {
-    sample_audio().expect("Something Went Wrong!!!")
-}
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset(
-    env: jni::JNIEnv,
-    _class: jni::objects::JClass,
-    asset_manager_object: jni::objects::JObject,
-) {
-    let asset_manager = get_asset_manager(env, asset_manager_object);
 
-    let mut tflite_file = asset_helper::load_asset_buffer(WHISPER_TFLITE, &asset_manager)
-        .expect(format!("Could not load {}", WHISPER_TFLITE).as_str());
-    let tflite_buf = tflite_file
-        .get_buffer()
-        .expect("File opened, but no data read from buffer!");
+/// ```
+/// #[no_mangle]
+/// #[allow(non_snake_case)]
+/// pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_retrieveAsset(
+///     env: jni::JNIEnv,
+///     _class: jni::objects::JClass,
+///     asset_manager_object: jni::objects::JObject,
+/// ) {
+///     let asset_manager = get_asset_manager(env, asset_manager_object);
 
-    let _interpreter = Interpreter::with_model_bytes(
-        tflite_buf,
-        tflite_buf.len() as u64,
-        Some(Options::default()),
-    )
-    .expect(
-        format!(
-            "Could not create a TfLiteC-rs Interpreter with a collection of bits named {}",
-            WHISPER_TFLITE
-        )
-        .as_str(),
-    );
+///     let mut tflite_file = asset_helper::load_asset_buffer(WHISPER_TFLITE, &asset_manager)
+///         .expect(format!("Could not load {}", WHISPER_TFLITE).as_str());
+///     let tflite_buf = tflite_file
+///         .get_buffer()
+///         .expect("File opened, but no data read from buffer!");
 
-    log::info!("Success Loading Model!");
-}
+///     let _interpreter = Interpreter::with_model_bytes(
+///         tflite_buf,
+///         tflite_buf.len() as u64,
+///         Some(Options::default()),
+///     )
+///     .expect(
+///         format!(
+///             "Could not create a TfLiteC-rs Interpreter with a collection of bits named {}",
+///             WHISPER_TFLITE
+///         )
+///         .as_str(),
+///     );
 
-fn start_recording() -> anyhow::Result<()> {
-    Ok(())
-}
-fn stop_recording_and_analyze() -> anyhow::Result<String> {
-    Ok("Hello There".to_string())
-}
+///     log::info!("Success Loading Model!");
+/// }
 
-fn sample_audio() -> anyhow::Result<()> {
-    match unsafe { (DEVICE_ID, SAMPLE_RATE, CHANNELS) } {
-        (Some(device_id), Some(sample_rate), Some(channels)) => {
-            let input_stream = AudioStreamBuilder::new()?
-                .device_id(device_id)
-                .direction(AudioDirection::Input)
-                .sharing_mode(AudioSharingMode::Shared)
-                .performance_mode(ndk::audio::AudioPerformanceMode::LowLatency)
-                .sample_rate(sample_rate)
-                .channel_count(channels)
-                .format(ndk::audio::AudioFormat::PCM_Float)
-                .data_callback(Box::new(|a, b, c| -> AudioCallbackResult {
-                    // let float_arr = b as *mut c_float;
-                    // log::info!("{:?}", c);
+/// #[no_mangle]
+/// #[allow(non_snake_case)]
+/// pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_sampleAudio(
+///     _env: jni::JNIEnv,
+///     _class: jni::objects::JClass,
+/// ) {
+///     sample_audio().expect("Something Went Wrong!!!")
+/// }
 
-                    // unsafe {
-                    //     let vec = slice::from_raw_parts(float_arr, c as usize).to_vec();
-                    // }
-                    AudioCallbackResult::Continue
-                }))
-                .open_stream()?;
+/// fn sample_audio() -> anyhow::Result<()> {
+///     match unsafe { (DEVICE_ID, SAMPLE_RATE, CHANNELS) } {
+///         (Some(device_id), Some(sample_rate), Some(channels)) => {
+///             let input_stream = AudioStreamBuilder::new()?
+///                 .device_id(device_id)
+///                 .direction(AudioDirection::Input)
+///                 .sharing_mode(AudioSharingMode::Shared)
+///                 .performance_mode(ndk::audio::AudioPerformanceMode::LowLatency)
+///                 .sample_rate(sample_rate)
+///                 .channel_count(channels)
+///                 .format(ndk::audio::AudioFormat::PCM_Float)
+///                 .data_callback(Box::new(|a, b, c| -> AudioCallbackResult {
+///                     /// let float_arr = b as *mut c_float;
+///                     /// log::info!("{:?}", c);
 
-            let sample_rate = input_stream.get_sample_rate();
-            let frames_per_burst = input_stream.get_frames_per_burst();
+///                     /// unsafe {
+///                     ///     let vec = slice::from_raw_parts(float_arr, c as usize).to_vec();
+///                     /// }
+///                     AudioCallbackResult::Continue
+///                 }))
+///                 .open_stream()?;
 
-            input_stream.request_start()?;
-            thread::sleep(Duration::from_secs(10));
-            Ok(())
-        }
+///             let sample_rate = input_stream.get_sample_rate();
+///             let frames_per_burst = input_stream.get_frames_per_burst();
 
-        (_, _, _) => Err(std::io::Error::new(
-            std::io::ErrorKind::PermissionDenied,
-            "You have not initialized the library!!!",
-        )),
-    }?;
-    Ok(())
-}
+///             input_stream.request_start()?;
+///             thread::sleep(Duration::from_secs(10));
+///             Ok(())
+///         }
+
+///         (_, _, _) => Err(std::io::Error::new(
+///             std::io::ErrorKind::PermissionDenied,
+///             "You have not initialized the library!!!",
+///         )),
+///     }?;
+///     Ok(())
+/// }
+/// ```
+pub fn sample() {}
