@@ -14,12 +14,12 @@ Integration of the OpenAI speech to text model.
 ### Tools
 - [Android Studio](https://developer.android.com/studio)
     - Tools -> SDK Manager -> SDK Tools ->
-        - Android SDK Build-Tools 33
-        - NDK 221.4.7075529	
+        - Android SDK Build-Tools 33.0.0
+        - NDK 25.1.8937393
 - [VSCode](https://code.visualstudio.com/)
     - Extensions
         - [Rust Analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
-            - Modify .vscode/settings.json `rust-analyzer.cargo.extraEnv/ANDROID_NDK_HOME` to point to your android NDK installation. Alternatively, if this var is already set, you can remove it.
+
 
 ### Assets (Included)
 - `whisper.tflite` TFLite Model + `filters_vocab_gen.bin`
@@ -29,6 +29,7 @@ Integration of the OpenAI speech to text model.
 
 
 ## How to run
-- VSCode.
-    - run `./.vscode/build_for_android.sh`.
+- VSCode:
+    - Open the vscode project at `/WhisperVoiceKeyboard/app/src/main/rust` and verify the environment variables set in `.vscode/settings.json::rust-analyzer.server.extraEnv` and `.vscode/cargoNdkEnv.sh`
+    - run `./.vscode/build_for_android.sh` to build the rust artifacts.
 - Android Studio: Just open the project. Need to expand project view to see rust files. Primarily for editing the Android App source.
