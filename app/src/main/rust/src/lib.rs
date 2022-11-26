@@ -4,7 +4,7 @@ use std::ffi::{c_float, c_void, CString};
 use std::fs::File;
 use std::panic::catch_unwind;
 use std::ptr::NonNull;
-use std::thread;
+use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
 mod asset_helper;
@@ -26,6 +26,8 @@ const FILTERS_VOCAB_GEN_BIN: &str = "filters_vocab_gen.bin";
 const GET_DEVICES_OUTPUTS: jni::sys::jint = 2;
 const GET_DEVICES_INPUTS: jni::sys::jint = 1;
 
+static mut VOICE_PROCESS_RESULT: Option<JoinHandle<String>> = None;
+
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecording(
@@ -35,7 +37,14 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecordin
     sample_rate: jint,
     channels: jint,
 ) -> jni::sys::jboolean {
-    true.into()
+    if unsafe { VOICE_PROCESS_RESULT.is_none() } {
+        let join_handle = thread::spawn(|| String::from("capital F false"));
+        let _previous = unsafe { VOICE_PROCESS_RESULT.replace(join_handle) };
+
+        true.into()
+    } else {
+        false.into()
+    }
 }
 
 #[no_mangle]
@@ -44,10 +53,18 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
     env: jni::JNIEnv,
     _class: jni::objects::JClass,
 ) -> jni::sys::jstring {
-    let output = env
-        .new_string(format!("capital T true"))
-        .expect("Couldn't create java string!");
-    output.into_raw()
+    if unsafe { VOICE_PROCESS_RESULT.is_some() } {
+        let result = unsafe { VOICE_PROCESS_RESULT.take() }.unwrap();
+        let output = env
+            .new_string(result.join().expect("did not expect audio thread to panic"))
+            .expect("Couldn't create java string!");
+        output.into_raw()
+    } else {
+        let output = env
+            .new_string(format!("*throws an error in shame*"))
+            .expect("Couldn't create java string!");
+        output.into_raw()
+    }
 }
 
 #[no_mangle]
