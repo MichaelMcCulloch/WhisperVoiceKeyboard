@@ -20,11 +20,8 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
-        Optional<AudioDeviceConfig> bottomMic = getBottomMicrophone();
-        if (bottomMic.isPresent()) {
-            RustLib.init(getApplicationContext(), bottomMic.get().getDeviceId(), bottomMic.get().getDeviceSampleRate(), bottomMic.get().getDeviceChannels());
+        RustLib.init(getApplicationContext());
 
-        }
 
     }
 
@@ -60,7 +57,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         super.onDestroy();
     }
 
-    WhisperVoiceTranscriptionDriver driver = new WhisperVoiceTranscriptionDriver();
 
     @Override
     public View onCreateInputView() {
@@ -69,12 +65,12 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
 
         recordButton.setOnCheckedChangeListener((button, checked) -> {
-            if (checked) {
-                RustLib r = new RustLib();
-                r.sampleAudio();
-                startVoiceService();
+            if (checked && getBottomMicrophone().isPresent()) {
+                AudioDeviceConfig bottomMic = getBottomMicrophone().get();
+                RustLib.startRecording(bottomMic.getDeviceId(), bottomMic.getDeviceSampleRate(), bottomMic.getDeviceChannels());
             } else {
-                stopVoiceService();
+                String result = RustLib.endRecording();
+                getCurrentInputConnection().commitText(result, result.length());
             }
         });
 
@@ -82,17 +78,5 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     }
 
 
-    private void startVoiceService() {
-        Log.i("VoiceKeyboardService", "Init Service");
-        driver.startListening();
-
-    }
-
-    private void stopVoiceService() {
-        Log.i("VoiceKeyboardService", "Term Service");
-        String text = driver.stopListeningAndRetrieveText();
-        getCurrentInputConnection().commitText(text, text.length());
-
-    }
 
 }
