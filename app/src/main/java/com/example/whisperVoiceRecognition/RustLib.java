@@ -25,4 +25,5 @@ public class RustLib  {
 
     public static native boolean startRecording(int deviceId, int sampleRate, int channels);
     public static native String endRecording();
+    public static native boolean abortRecording();
 }
