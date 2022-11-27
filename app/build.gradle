@@ -45,18 +45,18 @@ cargoNdk {
     def ndkDir = properties.getProperty('ndk.dir')
 
     librariesNames = ["librust.so"]
-    extraCargoEnv =[
-            "ANDROID_SDK_HOME":"${sdkDir}",
-            "ANDROID_NDK_HOME":"${ndkDir}",
-            "ANDROID_NDK_API_LEVEL":apiLevel ,
-            "ANDROID_SDK_VERSION":apiLevel ,
-            "ANDROID_API_LEVEL":apiLevel ,
-            "ANDROID_BUILD_TOOLS_VERSION":"33.0.0",
-            "ANDROID_HOME":"${sdkDir}/build-tools/33.0.0",
-            "BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
-            "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}sysroot/usr/include/ -I${ndkDir}toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
-            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID":"${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
-            "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID":"${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
+    extraCargoEnv = [
+            "ANDROID_SDK_HOME"                              : "${sdkDir}/",
+            "ANDROID_NDK_HOME"                              : "${ndkDir}/",
+            "ANDROID_NDK_API_LEVEL"                         : apiLevel,
+            "ANDROID_SDK_VERSION"                           : apiLevel,
+            "ANDROID_API_LEVEL"                             : apiLevel,
+            "ANDROID_BUILD_TOOLS_VERSION"                   : "33.0.0",
+            "ANDROID_HOME"                                  : "${sdkDir}/build-tools/33.0.0",
+            "BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID" : "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
+            "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
+            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID"    : "${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
+            "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID"   : "${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
 
     ]
 }
