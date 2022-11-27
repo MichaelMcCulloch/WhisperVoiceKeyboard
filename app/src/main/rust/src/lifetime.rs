@@ -5,8 +5,6 @@ use jni::{objects::JObject, JNIEnv};
 use jni_sys::JavaVM;
 use log::Level;
 
-use crate::audio_device_config::*;
-
 pub(crate) fn init(env: JNIEnv, mut context: JObject) {
     android_logger::init_once(Config::default().with_min_level(Level::Trace));
     unsafe {
@@ -22,7 +20,7 @@ pub(crate) fn init(env: JNIEnv, mut context: JObject) {
 pub(crate) fn uninit() {
     unsafe {
         ndk_context::release_android_context();
-        uninit_audio();
+        // uninit_audio();
     }
     log::info!("Succeeded in deinit context")
 }

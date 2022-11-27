@@ -16,9 +16,9 @@ enum Message {
 }
 
 fn transcription_thread(
-    audio_device_id: i32,
-    audio_device_sample_rate: i32,
-    audio_device_channel_count: i32,
+    _audio_device_id: i32,
+    _audio_device_sample_rate: i32,
+    _audio_device_channel_count: i32,
     message_receiver: Receiver<Message>,
 ) -> Option<String> {
     // Spin up audio stream and prepare callback

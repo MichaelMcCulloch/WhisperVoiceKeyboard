@@ -1,23 +1,5 @@
-use crate::asset_helper::get_asset_manager;
-use anyhow::Result;
-use audio_device_config::{CHANNELS, DEVICE_ID, SAMPLE_RATE};
-use core::slice;
-use jni::objects::{JObject, JValue};
-use jni::sys::{jboolean, jstring};
+use jni::sys::{jboolean, jint, jstring};
 use jni::JNIEnv;
-use jni_sys::{jint, JNI_VERSION_1_8};
-use ndk::audio::{
-    AudioCallbackResult, AudioDirection, AudioSharingMode, AudioStream, AudioStreamBuilder,
-};
-use std::any::Any;
-use std::ffi::{c_float, c_void, CString};
-use std::fs::File;
-use std::panic::catch_unwind;
-use std::ptr::NonNull;
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::thread::{self, JoinHandle};
-use std::time::Duration;
-use tflitec::interpreter::{Interpreter, Options};
 
 mod asset_helper;
 mod audio_device_config;
