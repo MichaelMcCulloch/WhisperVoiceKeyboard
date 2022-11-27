@@ -17,8 +17,11 @@ tflitec = { git = "https://github.com/MichaelMcCulloch/tflitec-rs", features = [
 
 [profile.release]
 lto = true
+strip = true
+
 
 [lib]
 name = "rust"
 crate-type = ["cdylib"]
+
 

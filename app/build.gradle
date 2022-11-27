@@ -17,6 +17,7 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.debug
     }
 
     buildTypes {
@@ -36,7 +37,6 @@ android {
 
 cargoNdk {
     targets = ["arm64", "x86_64"]  // See bellow for a longer list of options
-    buildType = "release"
     apiLevel = 30
 
     Properties properties = new Properties()
@@ -59,6 +59,8 @@ cargoNdk {
             "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID"   : "${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
 
     ]
+
+
 }
 
 
