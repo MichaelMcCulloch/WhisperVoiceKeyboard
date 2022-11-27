@@ -4,7 +4,6 @@ import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
 
@@ -28,16 +27,12 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     private Optional<AudioDeviceConfig> getBottomMicrophone() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-        Log.i("VoiceKeyboardInputMethodService", "Number of inputs: " + adi.length);
-        Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi).map(x -> {
-            Log.i("VoiceKeyboardInputMethodService", "Placement: " + x.getAddress());
-            return x;
-        }).filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom")).findAny();
-
+        Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi)
+                .filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom"))
+                .findAny();
 
         if (bottomMic.isPresent()) {
-            //TODO: Is this the best microphone? I assume so.
-            //TODO: Is this sample rate + channel combination supported? What is the preferred format, FLOAT or I16?
+
             OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates()).max();
             OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts()).min();
             if (maxSampleRate.isPresent() && minChannels.isPresent()) {
@@ -76,7 +71,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
         return inputView;
     }
-
 
 
 }
