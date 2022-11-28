@@ -33,8 +33,12 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
         if (bottomMic.isPresent()) {
 
-            OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates()).max();
-            OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts()).min();
+            OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates())
+                    .filter(x -> x == 44100)
+                    .findAny();
+            OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts())
+                    .filter(x -> x == 2)
+                    .findAny();
             if (maxSampleRate.isPresent() && minChannels.isPresent()) {
                 AudioDeviceConfig audioDeviceConfig = new AudioDeviceConfig(bottomMic.get().getId(), maxSampleRate.getAsInt(), minChannels.getAsInt());
 

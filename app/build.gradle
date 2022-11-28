@@ -57,6 +57,8 @@ cargoNdk {
             "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
             "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID"    : "${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
             "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID"   : "${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
+            "PKG_CONFIG_SYSROOT_DIR_aarch64_linux_android"  : "${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot",
+            "PKG_CONFIG_ALLOW_CROSS"                        : "true",
 
     ]
 

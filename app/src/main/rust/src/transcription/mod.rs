@@ -1,2 +1,3 @@
+mod log_mel;
 pub(crate) mod recording;
-pub(crate) mod tflite;
+mod tflite;
