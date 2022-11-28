@@ -2,7 +2,6 @@ use jni::sys::{jboolean, jint, jstring};
 use jni::JNIEnv;
 
 mod asset_helper;
-mod audio_device_config;
 mod lifetime;
 mod transcription;
 
@@ -33,7 +32,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_abortRecordin
     _env: JNIEnv,
     _class: jni::objects::JClass,
 ) -> jboolean {
-    transcription::recording::abort_recording()
+    transcription::recording::abort_recording().unwrap()
 }
 
 #[no_mangle]
