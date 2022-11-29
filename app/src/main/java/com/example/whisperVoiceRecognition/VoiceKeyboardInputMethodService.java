@@ -19,7 +19,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
-        RustLib.init(getApplicationContext());
+        RustLib.init(getApplicationContext(), getAssets());
 
 
     }
@@ -34,7 +34,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         if (bottomMic.isPresent()) {
 
             OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates())
-                    .filter(x -> x == 44100)
+                    .filter(x -> x == 16000)
                     .findAny();
             OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts())
                     .filter(x -> x == 2)

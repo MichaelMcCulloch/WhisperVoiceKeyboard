@@ -10,7 +10,7 @@
         "-p",
         "30",
         "-t",
-        "x86_64",
+        "aarch64-linux-android",
         "check",
         "--message-format=json",
     ],
@@ -20,10 +20,11 @@
         "-p",
         "30",
         "-t",
-        "x86_64",
+        "aarch64-linux-android",
         "check",
         "--message-format=json",
     ],
+    "rust-analyzer.cargo.target": "aarch64-linux-android",
     "rust-analyzer.trace.server": "verbose",
     "rust-analyzer.server.extraEnv": {
         "JNI_LIB_DIR": "${workspaceFolder}/../jniLibs",
@@ -37,8 +38,7 @@
         "ANDROID_HOME": "${env:ANDROID_SDK_HOME}/build-tools/${env:ANDROID_BUILD_TOOLS_VERSION}",
         "ANDROID_NDK_HOME": "${env:ANDROID_SDK_HOME}/ndk/25.1.8937393",
         "BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID": "-I${env:ANDROID_NDK_HOME}/sources/cxx-stl/llvm-libc++/include/ -I${env:ANDROID_NDK_HOME}/sysroot/usr/include/ -I${env:ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
-        "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${env:ANDROID_NDK_HOME}/sources/cxx-stl/llvm-libc++/include/ -I${env:ANDROID_NDK_HOME}/sysroot/usr/include/ -I${env:ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
-        "PKG_CONFIG_SYSROOT_DIR_x86_64-linux-android": "/home/michael/Android/Sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/linux-x86_64/sysroot",
+        "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${env:ANDROID_NDK_HOME}/sources/cxx-stl/llvm-libc++/include/ -I${env:ANDROID_NDK_HOME}/sysroot/usr/include/ -I${env:ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/"
     },
     "rust-analyzer.cargo.buildScripts.invocationLocation": "workspace",
 }

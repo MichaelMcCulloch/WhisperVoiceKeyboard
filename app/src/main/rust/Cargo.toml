@@ -19,8 +19,8 @@ anyhow= "1.0.66"
 
 mel = "0.3.0"
 nalgebra ="0.31.4"
-crossbeam="0.8.2"
-ffmpeg-sys-next = {version = "5.1.1"}
+crossbeam-queue="0.3.8" 
+# packed_simd = { version = "0.3.8", package = "packed_simd_2" } # Premature Optimization
 tflitec = { git = "https://github.com/MichaelMcCulloch/tflitec-rs", features = ["xnnpack"], branch = "main"}
 
 [profile.release]

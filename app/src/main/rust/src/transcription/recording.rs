@@ -1,12 +1,5 @@
-use std::ffi::{c_int, c_void};
-use std::slice;
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::sync::Arc;
-use std::thread::{self, JoinHandle};
-use std::time::Duration;
-
 use anyhow::Result;
-use crossbeam::queue::ArrayQueue;
+use crossbeam_queue::ArrayQueue;
 use jni::{
     sys::{jboolean, jint, jstring},
     JNIEnv,
@@ -15,11 +8,19 @@ use ndk::audio::{
     AudioAllowedCapturePolicy, AudioCallbackResult, AudioDirection, AudioPerformanceMode,
     AudioSharingMode, AudioStream, AudioStreamBuilder, AudioStreamState,
 };
+use std::{
+    slice,
+    sync::{
+        mpsc::{channel, Receiver},
+        Arc,
+    },
+    thread,
+    time::Duration,
+};
 
-static mut VOICE_PROCESSING_THREAD: Option<JoinHandle<Option<String>>> = None;
-static mut VOICE_PROCESSING_THREAD_MESSENGER: Option<Sender<Message>> = None;
+use crate::statics::{VOICE_PROCESSING_THREAD, VOICE_PROCESSING_THREAD_MESSENGER};
 
-enum Message {
+pub(crate) enum Message {
     StopAndTranscribe,
     Abort,
 }
@@ -59,17 +60,26 @@ fn transcription_thread(
                 Ok(Message::StopAndTranscribe) => {
                     let capacity =
                         (audio_device_sample_rate * audio_device_channel_count * 30) as usize;
-                    let mut audio_buffer = Vec::with_capacity(capacity);
+                    let audio_buffer = {
+                        let mut audio_buffer = Vec::with_capacity(capacity);
 
-                    while let Some(mut veci16) = thirty_second_audio_buffer.pop() {
-                        audio_buffer.append(&mut veci16)
-                    }
+                        while let Some(mut vec_frames) = thirty_second_audio_buffer.pop() {
+                            audio_buffer.append(&mut vec_frames)
+                        }
 
-                    let mut pad_the_buffer_with_zeroes = vec![0; capacity - audio_buffer.len()];
-                    audio_buffer.append(&mut pad_the_buffer_with_zeroes);
-                    log::info!("{:?}", audio_buffer.len());
-
+                        let mut pad_the_buffer_with_zeroes =
+                            vec![0i16; capacity - audio_buffer.len()];
+                        audio_buffer.append(&mut pad_the_buffer_with_zeroes);
+                        log::info!("{:?}", audio_buffer.len());
+                        audio_buffer
+                    };
                     //convert the input signal to 16khz mono
+
+                    let audio_buffer_mono = if audio_device_channel_count == 2 {
+                        combine_channels(audio_buffer)
+                    } else {
+                        audio_buffer
+                    };
 
                     Some(String::from("Hello there!"))
                 }
@@ -78,6 +88,16 @@ fn transcription_thread(
             }
         }
     }
+}
+
+fn combine_channels(stereo_pairwise: Vec<i16>) -> Vec<i16> {
+    stereo_pairwise.chunks_exact(2).into_iter().fold(
+        Vec::with_capacity(stereo_pairwise.len() / 2),
+        |mut mono, s| {
+            mono.push(((s[0] as i32 + s[1] as i32) / 2) as i16);
+            mono
+        },
+    )
 }
 
 fn create_audio_stream(
@@ -89,7 +109,6 @@ fn create_audio_stream(
 ) -> AudioStream {
     let samples_per_interval =
         audio_device_channel_count * audio_device_sample_rate / intervals_per_second;
-    //441 left + 441 right = 882
     let input_stream = AudioStreamBuilder::new()
         .expect("Could not get Audio Stream Builder")
         .device_id(audio_device_id)
@@ -104,9 +123,10 @@ fn create_audio_stream(
         .data_callback(Box::new(
             move |_audio_stream, frame_buffer, count| -> AudioCallbackResult {
                 let i16_array = frame_buffer as *mut i16; //TODO try i32 or c_int if this doesn't work!
-                let veci16 = unsafe { slice::from_raw_parts(i16_array, count as usize).to_vec() };
+                let vec_audio_frames =
+                    unsafe { slice::from_raw_parts(i16_array, count as usize).to_vec() };
 
-                match thirty_second_audio_buffer.push(veci16) {
+                match thirty_second_audio_buffer.push(vec_audio_frames) {
                     Ok(()) => AudioCallbackResult::Continue,
                     Err(_) => AudioCallbackResult::Stop,
                 }
