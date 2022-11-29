@@ -34,7 +34,10 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_abortRecordin
     _env: JNIEnv,
     _class: jni::objects::JClass,
 ) -> jboolean {
-    transcription::recording::abort_recording().unwrap()
+    match transcription::recording::abort_recording() {
+        Ok(_) => true.into(),
+        Err(_) => false.into(),
+    }
 }
 
 #[no_mangle]

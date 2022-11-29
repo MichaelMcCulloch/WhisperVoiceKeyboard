@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use crossbeam_queue::ArrayQueue;
 use jni::{
     sys::{jboolean, jint, jstring},
@@ -17,12 +17,25 @@ use std::{
     thread,
     time::Duration,
 };
+use tflitec::interpreter::Interpreter;
 
-use crate::statics::{VOICE_PROCESSING_THREAD, VOICE_PROCESSING_THREAD_MESSENGER};
+use crate::{
+    statics::{
+        VOICE_PROCESSING_THREAD, VOICE_PROCESSING_THREAD_MESSENGER, WHISPER_FILTERS,
+        WHISPER_TFLITE_MODEL,
+    },
+    whisper::filters::WhisperFilters,
+};
 
 pub(crate) enum Message {
     StopAndTranscribe,
     Abort,
+}
+
+pub(crate) enum TranscriptionResponse {
+    Complete(String, Interpreter, WhisperFilters),
+    Aborted(Interpreter, WhisperFilters),
+    Error(Interpreter, WhisperFilters),
 }
 
 fn transcription_thread(
@@ -30,7 +43,9 @@ fn transcription_thread(
     audio_device_sample_rate: i32,
     audio_device_channel_count: i32,
     message_receiver: Receiver<Message>,
-) -> Option<String> {
+    model: Interpreter,
+    filter: WhisperFilters,
+) -> TranscriptionResponse {
     // Spin up audio stream and prepare callback
     let intervals_per_second = 100i32;
     let thirty_second_audio_buffer: Arc<ArrayQueue<Vec<i16>>> =
@@ -80,11 +95,13 @@ fn transcription_thread(
                     } else {
                         audio_buffer
                     };
-
-                    Some(String::from("Hello there!"))
+                    TranscriptionResponse::Complete(String::from("Hello there!"), model, filter)
                 }
-                Ok(Message::Abort) => None,
-                Err(_) => None,
+                Ok(Message::Abort) => TranscriptionResponse::Aborted(model, filter),
+                Err(_) => {
+                    //it should be impossible to get here as the sending thread is still waiting for this to shutdown, hence the recv error would not be thrown;
+                    TranscriptionResponse::Error(model, filter)
+                }
             }
         }
     }
@@ -175,62 +192,103 @@ pub(crate) fn start_recording(device_id: jint, sample_rate: jint, channels: jint
         (
             VOICE_PROCESSING_THREAD.take(),
             VOICE_PROCESSING_THREAD_MESSENGER.take(),
+            WHISPER_TFLITE_MODEL.take(),
+            WHISPER_FILTERS.take(),
         )
     } {
-        (None, None) => {
+        (None, None, Some(model), Some(filter)) => {
             let (sender, recv) = channel();
-            let join_handle =
-                thread::spawn(move || transcription_thread(device_id, sample_rate, channels, recv));
+            let join_handle = thread::spawn(move || {
+                transcription_thread(device_id, sample_rate, channels, recv, model, filter)
+            });
 
             unsafe { VOICE_PROCESSING_THREAD.replace(join_handle) };
             unsafe { VOICE_PROCESSING_THREAD_MESSENGER.replace(sender) };
 
             true.into()
         }
-        (_, _) => false.into(),
+        (a, b, c, d) => {
+            log::info!("{:?},{:?},{:?},{:?}", a, b, c, d);
+            false.into()
+        }
     }
 }
 
 pub(crate) fn end_recording(env: JNIEnv) -> Result<jstring> {
-    Ok(
-        match unsafe {
-            (
-                VOICE_PROCESSING_THREAD.take(),
-                VOICE_PROCESSING_THREAD_MESSENGER.take(),
-            )
-        } {
-            (Some(join_handle), Some(messenger)) => {
-                messenger.send(Message::StopAndTranscribe)?;
-                let transcription = match join_handle.join() {
-                    Ok(Some(string)) => string,
-                    Ok(None) => String::new(),
-                    Err(_) => String::new(),
-                };
-                let output = env.new_string(transcription)?;
-                output.into_raw()
-            }
-            (_, _) => {
-                let output = env.new_string(format!("*throws an error in shame*"))?;
-                output.into_raw()
-            }
-        },
-    )
+    let transcription = match unsafe {
+        (
+            VOICE_PROCESSING_THREAD.take(),
+            VOICE_PROCESSING_THREAD_MESSENGER.take(),
+            WHISPER_TFLITE_MODEL.take(),
+            WHISPER_FILTERS.take(),
+        )
+    } {
+        (Some(join_handle), Some(messenger), None, None) => {
+            messenger.send(Message::StopAndTranscribe)?;
+            let transcription = match join_handle.join() {
+                Err(_) => Err(anyhow!("Unable to Join Thread")),
+                Ok(transcription_response) => match transcription_response {
+                    TranscriptionResponse::Complete(transcription, model, filters) => {
+                        unsafe { WHISPER_TFLITE_MODEL.replace(model) };
+                        unsafe { WHISPER_FILTERS.replace(filters) };
+                        Ok(transcription)
+                    }
+                    TranscriptionResponse::Aborted(model, filters) => {
+                        unsafe { WHISPER_TFLITE_MODEL.replace(model) };
+                        unsafe { WHISPER_FILTERS.replace(filters) };
+                        Ok(String::new())
+                    }
+                    TranscriptionResponse::Error(model, filters) => {
+                        unsafe { WHISPER_TFLITE_MODEL.replace(model) };
+                        unsafe { WHISPER_FILTERS.replace(filters) };
+                        Err(anyhow!("Error in transcription thread"))
+                    }
+                },
+            }?;
+            Ok(transcription)
+        }
+        (_, _, _, _) => Err(anyhow!("Invalid Library State! Kill me please")),
+    }?;
+
+    let output = env.new_string(transcription)?;
+    Ok(output.into_raw())
 }
 
-pub(crate) fn abort_recording() -> Result<jboolean> {
-    Ok(
-        match unsafe {
-            (
-                VOICE_PROCESSING_THREAD.take(),
-                VOICE_PROCESSING_THREAD_MESSENGER.take(),
-            )
-        } {
-            (Some(join_handle), Some(messenger)) => {
-                messenger.send(Message::Abort)?;
-                join_handle.join().unwrap();
-                true.into()
-            }
-            (_, _) => false.into(),
-        },
-    )
+pub(crate) fn abort_recording() -> Result<()> {
+    let transcription = match unsafe {
+        (
+            VOICE_PROCESSING_THREAD.take(),
+            VOICE_PROCESSING_THREAD_MESSENGER.take(),
+            WHISPER_TFLITE_MODEL.take(),
+            WHISPER_FILTERS.take(),
+        )
+    } {
+        (Some(join_handle), Some(messenger), None, None) => {
+            messenger.send(Message::Abort)?;
+            let transcription = match join_handle.join() {
+                Err(_) => Err(anyhow!("Unable to Join Thread")),
+                Ok(transcription_response) => match transcription_response {
+                    TranscriptionResponse::Complete(transcription, model, filters) => {
+                        unsafe { WHISPER_TFLITE_MODEL.replace(model) };
+                        unsafe { WHISPER_FILTERS.replace(filters) };
+                        Ok(())
+                    }
+                    TranscriptionResponse::Aborted(model, filters) => {
+                        unsafe { WHISPER_TFLITE_MODEL.replace(model) };
+                        unsafe { WHISPER_FILTERS.replace(filters) };
+                        Ok(())
+                    }
+                    TranscriptionResponse::Error(model, filters) => {
+                        unsafe { WHISPER_TFLITE_MODEL.replace(model) };
+                        unsafe { WHISPER_FILTERS.replace(filters) };
+                        Err(anyhow!("Error in transcription thread"))
+                    }
+                },
+            }?;
+            Ok(transcription)
+        }
+        (_, _, _, _) => Err(anyhow!("Invalid Library State! Kill me please")),
+    }?;
+
+    Ok(transcription)
 }
