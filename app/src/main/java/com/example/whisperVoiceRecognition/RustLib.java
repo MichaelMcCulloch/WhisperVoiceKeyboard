@@ -1,11 +1,12 @@
 package com.example.whisperVoiceRecognition;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 
-public class RustLib  {
+public class RustLib {
 
 
-//
+    //
 //    public void retrieveAssetPub(AssetManager assetManager) {
 //        retrieveAsset(assetManager);
 //    }
@@ -20,10 +21,13 @@ public class RustLib  {
 //     * @param sampleRate AudioManager sample rate for the device
 //     * @param channels AudioManager Channels for the device
 //     */
-    public static native void init(Context context);
+    public static native void init(Context context, AssetManager assetManager);
+
     public static native void uninit();
 
     public static native boolean startRecording(int deviceId, int sampleRate, int channels);
+
     public static native String endRecording();
+
     public static native boolean abortRecording();
 }

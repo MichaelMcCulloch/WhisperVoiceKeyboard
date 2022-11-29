@@ -2,9 +2,11 @@ use jni::sys::{jboolean, jint, jstring};
 use jni::JNIEnv;
 
 mod asset_helper;
+pub(crate) mod constants;
 mod lifetime;
+mod statics;
 mod transcription;
-
+pub(crate) mod whisper;
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecording(
@@ -41,8 +43,9 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
     env: JNIEnv,
     _class: jni::objects::JClass,
     context: jni::objects::JObject,
+    asset_manager_object: jni::objects::JObject,
 ) {
-    lifetime::init(env, context);
+    lifetime::init(env, context, asset_manager_object);
 }
 
 #[no_mangle]
