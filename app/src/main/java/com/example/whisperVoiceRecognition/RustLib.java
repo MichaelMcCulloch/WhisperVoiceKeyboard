@@ -21,7 +21,7 @@ public class RustLib {
 //     * @param sampleRate AudioManager sample rate for the device
 //     * @param channels AudioManager Channels for the device
 //     */
-    public static native void init(Context context, AssetManager assetManager);
+    public static native void init(Context context, AssetManager assetManager, String whisperFilePath);
 
     public static native void uninit();
 

@@ -14,34 +14,51 @@ use ndk_sys::AAsset;
 use std::{
     ffi::{c_uint, c_void},
     io::Read,
+    path::PathBuf,
 };
-use tflitec::interpreter::{Interpreter, Options};
+use tflitec::{
+    interpreter::{Interpreter, Options},
+    model::Model,
+};
 
 const SIZE_OF_X32_IN_X8: usize = 4;
 
-pub(crate) fn init(env: JNIEnv, context: JObject, asset_manager: JObject) {
+pub(crate) fn init(env: JNIEnv, context: JObject, asset_manager: JObject, whisper_file_path: &str) {
     android_logger::init_once(Config::default().with_min_level(Level::Trace));
 
     init_ndk_rs(env, context).expect("Could not init NDK-rs context");
 
-    init_whisper_model(env, asset_manager).expect("Could not load Whisper Model!!");
+    init_whisper_model(whisper_file_path).expect("Could not load Whisper Model!!");
     init_filters_vocab_gen(env, asset_manager).expect("Could not load Filters & Vocab!!");
 }
 
-fn init_whisper_model(env: JNIEnv, asset_manager: JObject) -> Result<()> {
+fn init_whisper_model(file_path: &str) -> Result<()> {
     match unsafe { WHISPER_TFLITE_MODEL.take() } {
         None => {
-            let asset_manager = get_asset_manager(env, asset_manager);
-            let mut tflite_file = asset_helper::load_asset_buffer(WHISPER_TFLITE, &asset_manager)?;
-            let tflite_buf = tflite_file.get_buffer()?;
+            // let asset_manager = get_asset_manager(env, asset_manager);
+            // let mut tflite_file = asset_helper::load_asset_buffer(WHISPER_TFLITE, &asset_manager)?;
+            // let tflite_buf = tflite_file.get_buffer()?;
 
-            let options = Options::default();
-            let interpreter =
-                Interpreter::with_model_bytes(tflite_buf, tflite_buf.len() as u64, Some(options))?;
-            unsafe {
-                WHISPER_TFLITE_MODEL.replace(interpreter);
-            };
+            let mut options = Options::default();
+            options.is_xnnpack_enabled = true;
+            options.thread_count = 0;
+            let model = Model::new(file_path)?;
             log::info!("Succeeded in Loading Whisper Model!");
+
+            match Interpreter::new(&model, Some(options)) {
+                Ok(i) => {
+                    log::info!("Succeeded in Loading Interpreter!");
+
+                    unsafe {
+                        WHISPER_TFLITE_MODEL.replace(i);
+                    };
+                    log::info!("Succeeded in Loading Whisper Model!");
+                }
+                Err(e) => {
+                    log::error!("FAILED Loading Interpreter! : {}", e);
+                }
+            };
+
             Ok(())
         }
         _ => Err(anyhow!("Model is already populated")),

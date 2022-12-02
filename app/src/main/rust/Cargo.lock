@@ -889,7 +889,8 @@ dependencies = [
 [[package]]
 name = "tflitec"
 version = "0.5.2"
-source = "git+https://github.com/MichaelMcCulloch/tflitec-rs?branch=main#c87a840d85f3aafa0a4c778ebf891692a708d81d"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6091df7ed5731b4850591fa299e6b8c845b493c1570510ee71bde69583dca27d"
 dependencies = [
  "bindgen",
  "curl",
