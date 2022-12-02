@@ -10,13 +10,18 @@ pub(crate) mod whisper;
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecording(
-    _env: JNIEnv,
+    env: JNIEnv,
     _class: jni::objects::JClass,
     device_id: jint,
     sample_rate: jint,
     channels: jint,
+    whisper_path: jni::objects::JString,
 ) -> jboolean {
-    transcription::recording::start_recording(device_id, sample_rate, channels)
+    let input: String = env
+        .get_string(whisper_path)
+        .expect("Couldn't get java string!")
+        .into();
+    transcription::recording::start_recording(device_id, sample_rate, channels, &input)
 }
 
 #[no_mangle]
@@ -47,8 +52,13 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
     _class: jni::objects::JClass,
     context: jni::objects::JObject,
     asset_manager_object: jni::objects::JObject,
+    whisper_path: jni::objects::JString,
 ) {
-    lifetime::init(env, context, asset_manager_object);
+    let input: String = env
+        .get_string(whisper_path)
+        .expect("Couldn't get java string!")
+        .into();
+    lifetime::init(env, context, asset_manager_object, &input);
 }
 
 #[no_mangle]

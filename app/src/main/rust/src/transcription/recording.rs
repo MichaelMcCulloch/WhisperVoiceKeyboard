@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use crossbeam_queue::ArrayQueue;
 use jni::{
+    objects::JString,
     sys::{jboolean, jint, jstring},
     JNIEnv,
 };
@@ -17,7 +18,10 @@ use std::{
     thread,
     time::Duration,
 };
-use tflitec::interpreter::Interpreter;
+use tflitec::{
+    interpreter::{Interpreter, Options},
+    model::Model,
+};
 
 use crate::{
     statics::{
@@ -37,7 +41,6 @@ pub(crate) enum TranscriptionResponse {
     Aborted(Interpreter, WhisperFilters),
     Error(Interpreter, WhisperFilters),
 }
-
 fn transcription_thread(
     audio_device_id: i32,
     audio_device_sample_rate: i32,
@@ -187,7 +190,12 @@ fn log_trace_audio_stream_info(input_stream: &AudioStream) {
     );
 }
 
-pub(crate) fn start_recording(device_id: jint, sample_rate: jint, channels: jint) -> jboolean {
+pub(crate) fn start_recording(
+    device_id: jint,
+    sample_rate: jint,
+    channels: jint,
+    path: &str,
+) -> jboolean {
     match unsafe {
         (
             VOICE_PROCESSING_THREAD.take(),

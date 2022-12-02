@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:allowBackup="true"
@@ -13,7 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WhisperVoiceKeyboard">
 
-        <service android:name="com.example.whisperVoiceRecognition.VoiceKeyboardInputMethodService"
+        <service
+            android:name="com.example.whisperVoiceRecognition.VoiceKeyboardInputMethodService"
             android:label="@string/VoiceKeyboardService_label"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true"
@@ -21,7 +23,8 @@
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
-            <meta-data android:name="android.view.im"
+            <meta-data
+                android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
 

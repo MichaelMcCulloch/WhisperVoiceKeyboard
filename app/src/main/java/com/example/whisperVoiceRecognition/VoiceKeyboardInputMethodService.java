@@ -4,11 +4,16 @@ import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
 
 import com.example.WhisperVoiceKeyboard.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -19,7 +24,29 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
-        RustLib.init(getApplicationContext(), getAssets());
+
+        try {
+            InputStream is = getAssets().open("whisper.tflite");
+
+            byte[] content = new byte[is.available()];
+
+            int _read = is.read(content);
+
+
+            File recording = new File(getCacheDir(), "whisper.tflite");
+            FileOutputStream fos = new FileOutputStream(recording);
+            fos.write(content);
+
+            fos.close();
+            String path = recording.getAbsolutePath();
+            Log.i("VoiceKeyboardInputMethodService", "onCreate: " + path);
+
+
+            RustLib.init(getApplicationContext(), getAssets(), path);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
     }
@@ -39,7 +66,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                     .min();
             if (maxSampleRate.isPresent() && minChannels.isPresent()) {
                 AudioDeviceConfig audioDeviceConfig = new AudioDeviceConfig(bottomMic.get().getId(), maxSampleRate.getAsInt(), minChannels.getAsInt());
-
 
                 return Optional.of(audioDeviceConfig);
             }
