@@ -51,14 +51,8 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
     env: JNIEnv,
     _class: jni::objects::JClass,
     context: jni::objects::JObject,
-    asset_manager_object: jni::objects::JObject,
-    whisper_path: jni::objects::JString,
 ) {
-    let input: String = env
-        .get_string(whisper_path)
-        .expect("Couldn't get java string!")
-        .into();
-    lifetime::init(env, context, asset_manager_object, &input);
+    lifetime::init(env, context);
 }
 
 #[no_mangle]

@@ -4,52 +4,87 @@ import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
 
+import androidx.annotation.NonNull;
+
 import com.example.WhisperVoiceKeyboard.R;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalInt;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
+    private Optional<RecordingThread> _recordingThread;
+
     @Override
     public void onCreate() {
         super.onCreate();
         System.loadLibrary("rust");
+        RustLib.init(getApplicationContext());
 
-        try {
-            InputStream is = getAssets().open("whisper.tflite");
-
-            byte[] content = new byte[is.available()];
-
-            int _read = is.read(content);
-
-
-            File recording = new File(getCacheDir(), "whisper.tflite");
-            FileOutputStream fos = new FileOutputStream(recording);
-            fos.write(content);
-
-            fos.close();
-            String path = recording.getAbsolutePath();
-            Log.i("VoiceKeyboardInputMethodService", "onCreate: " + path);
-
-
-            RustLib.init(getApplicationContext(), getAssets(), path);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
+        RecordingThread recordingThread = new RecordingThread(getMediaRecorder());
+        _recordingThread = Optional.of(recordingThread);
+        recordingThread.run();
     }
+
+    @Override
+    public void onDestroy() {
+        _recordingThread = Optional.empty();
+        RustLib.uninit();
+        super.onDestroy();
+    }
+
+    @Override
+    public View onCreateInputView() {
+        View inputView =
+                getLayoutInflater().inflate(R.layout.keyboard, null);
+        ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
+
+        recordButton.setOnCheckedChangeListener((button, checked) -> {
+            if (checked && getBottomMicrophone().isPresent()) {
+                startRecording();
+            } else {
+                String result = endRecording();
+                getCurrentInputConnection().commitText(result, result.length());
+            }
+        });
+
+        return inputView;
+    }
+
+    @NonNull
+    private MediaRecorder getMediaRecorder() {
+        MediaRecorder recorder = new MediaRecorder();
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        recorder.setAudioChannels(1);
+        recorder.setAudioSamplingRate(16000);
+        recorder.setOutputFile(new File(getCacheDir(), "audio.mp4"));
+        return recorder;
+    }
+
+
+    private String endRecording() {
+        _recordingThread.ifPresent(RecordingThread::endRecording);
+
+        File file = new File(getCacheDir(), "audio.mp4");
+        Log.i("VoiceKeyboardInputMethodService", "endRecording: " + file.getPath());
+        return "Ok";
+    }
+
+    private void startRecording() {
+        File file = new File(getCacheDir(), "audio.mp4");
+        file.delete();
+        _recordingThread.ifPresent(RecordingThread::startRecording);
+    }
+
 
     private Optional<AudioDeviceConfig> getBottomMicrophone() {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -72,32 +107,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             return Optional.empty();
         }
         return Optional.empty();
-    }
-
-    @Override
-    public void onDestroy() {
-        RustLib.uninit();
-        super.onDestroy();
-    }
-
-
-    @Override
-    public View onCreateInputView() {
-        View inputView =
-                getLayoutInflater().inflate(R.layout.keyboard, null);
-        ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
-
-        recordButton.setOnCheckedChangeListener((button, checked) -> {
-            if (checked && getBottomMicrophone().isPresent()) {
-                AudioDeviceConfig bottomMic = getBottomMicrophone().get();
-                RustLib.startRecording(bottomMic.getDeviceId(), bottomMic.getDeviceSampleRate(), bottomMic.getDeviceChannels());
-            } else {
-                String result = RustLib.endRecording();
-                getCurrentInputConnection().commitText(result, result.length());
-            }
-        });
-
-        return inputView;
     }
 
 

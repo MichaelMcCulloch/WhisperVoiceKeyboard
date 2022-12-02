@@ -23,13 +23,10 @@ use tflitec::{
 
 const SIZE_OF_X32_IN_X8: usize = 4;
 
-pub(crate) fn init(env: JNIEnv, context: JObject, asset_manager: JObject, whisper_file_path: &str) {
+pub(crate) fn init(env: JNIEnv, context: JObject) {
     android_logger::init_once(Config::default().with_min_level(Level::Trace));
 
     init_ndk_rs(env, context).expect("Could not init NDK-rs context");
-
-    init_whisper_model(whisper_file_path).expect("Could not load Whisper Model!!");
-    init_filters_vocab_gen(env, asset_manager).expect("Could not load Filters & Vocab!!");
 }
 
 fn init_whisper_model(file_path: &str) -> Result<()> {
