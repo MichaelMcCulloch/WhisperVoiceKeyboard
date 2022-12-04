@@ -4,16 +4,42 @@ plugins {
 
 apply plugin: "com.github.willir.rust.cargo-ndk-android"
 
+int apiLevel = 33
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def sdkDir = properties.getProperty('sdk.dir')
+def ndkDir = properties.getProperty('ndk.dir')
+def build_tools_version = "33.0.1"
+Map<String, String> commonExtraCargoEnv = [
+        "ANDROID_SDK_HOME"           : "${sdkDir}/",
+        "ANDROID_NDK_HOME"           : "${ndkDir}/",
+        "ANDROID_NDK_API_LEVEL"      : apiLevel,
+        "ANDROID_SDK_VERSION"        : apiLevel,
+        "ANDROID_API_LEVEL"          : apiLevel,
+        "ANDROID_BUILD_TOOLS_VERSION": build_tools_version,
+        "ANDROID_HOME"               : "${sdkDir}/build-tools/${build_tools_version}"]
+
+def rustLibs = ["librust.so"]
+def jniInclude = "${project.rootProject.path}/app/src/main/jniInclude"
+def jniLibs = "${project.rootProject.path}/app/src/main/jniLibs"
+
+Map<String, String> ffmpegExtraCargoEnvAarch64 = [
+        "FFMPEG_INCLUDE_DIR": "${jniInclude}/arm64-v8a/",
+        "FFMPEG_LIB_DIR"    : "${jniLibs}/arm64-v8a/"]
+Map<String, String> ffmpegExtraCargoEnvX86_64 = [
+        "FFMPEG_INCLUDE_DIR": "${jniInclude}/x86_64/",
+        "FFMPEG_LIB_DIR"    : "${jniLibs}/x86_64/"]
+
 
 android {
     namespace 'com.example.WhisperVoiceKeyboard'
-    compileSdk 33
+    compileSdk apiLevel
 
     defaultConfig {
         applicationId "com.example.WhisperVoiceKeyboard"
-        minSdk 33
+        minSdk apiLevel
         //noinspection ExpiredTargetSdkVersion
-        targetSdk 33
+        targetSdk apiLevel
         versionCode 1
         versionName "1.0"
 
@@ -33,34 +59,20 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     ndkVersion '25.1.8937393'
-    buildToolsVersion '33.0.1'
+    buildToolsVersion 'build_tools_version'
+}
+
+
+cargoNdk {
+    targets = ["arm64"]
+    librariesNames = rustLibs
+    extraCargoEnv = commonExtraCargoEnv + ffmpegExtraCargoEnvAarch64
 }
 
 cargoNdk {
-    targets = ["arm64", "x86_64"]
-    apiLevel = 30
-
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    def sdkDir = properties.getProperty('sdk.dir')
-    def ndkDir = properties.getProperty('ndk.dir')
-    librariesNames = ["librust.so"]
-    extraCargoEnv = [
-            "ANDROID_SDK_HOME"                           : "${sdkDir}/",
-            "ANDROID_NDK_HOME"                           : "${ndkDir}/",
-            "ANDROID_NDK_API_LEVEL"                      : apiLevel,
-            "ANDROID_SDK_VERSION"                        : apiLevel,
-            "ANDROID_API_LEVEL"                          : apiLevel,
-            "ANDROID_BUILD_TOOLS_VERSION"                : "33.0.1",
-            "ANDROID_HOME"                               : "${sdkDir}/build-tools/33.0.1",
-//            "BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID" : "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
-//            "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
-            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID" : "${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
-            "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID": "${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
-
-    ]
-
-
+    targets = ["x86_64"]
+    librariesNames = rustLibs
+    extraCargoEnv = commonExtraCargoEnv + ffmpegExtraCargoEnvX86_64
 }
 
 

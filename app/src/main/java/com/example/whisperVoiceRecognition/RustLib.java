@@ -26,7 +26,7 @@ public class RustLib {
 //     */
     public static native void initLogger();
 
-    public native boolean createLogMelSpectogramFromAudioBytes(ByteBuffer audio, int audioLen, ByteBuffer output, int outputLen);
+    public native boolean createLogMelSpectogramFromAudioBytes(ByteBuffer audio, ByteBuffer output);
 
 
 }

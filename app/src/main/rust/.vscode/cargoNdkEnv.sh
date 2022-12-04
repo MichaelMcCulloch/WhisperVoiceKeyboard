@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 export PROJECT_ROOT="$HOME/AndroidStudioProjects/WhisperVoiceKeyboard"
 export JNI_LIB_DIR="$PROJECT_ROOT/app/src/main/jniLibs"
 export TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID="$JNI_LIB_DIR/x86_64/libtensorflowlite_c.so"
@@ -16,3 +15,5 @@ export ANDROID_NDK_HOME="$ANDROID_SDK_HOME/ndk/$ANDROID_NDK_VERSION"
 export BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID="-I$ANDROID_NDK_HOME/sources/cxx-stl/llvm-libc++/include/ -I$ANDROID_NDK_HOME/sysroot/usr/include/ -I$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
 export BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID="-I$ANDROID_NDK_HOME/sources/cxx-stl/llvm-libc++/include/ -I$ANDROID_NDK_HOME/sysroot/usr/include/ -I$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/"
 
+
+export PKG_CONFIG_SYSROOT_DIR="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/"
