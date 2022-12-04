@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import com.example.WhisperVoiceKeyboard.R;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -25,8 +26,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     @Override
     public void onCreate() {
         super.onCreate();
-        System.loadLibrary("rust");
-        RustLib.init(getApplicationContext());
+
 
         RecordingThread recordingThread = new RecordingThread(getMediaRecorder());
         _recordingThread = Optional.of(recordingThread);
@@ -36,7 +36,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     @Override
     public void onDestroy() {
         _recordingThread = Optional.empty();
-        RustLib.uninit();
         super.onDestroy();
     }
 
@@ -48,6 +47,15 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
         recordButton.setOnCheckedChangeListener((button, checked) -> {
             if (checked && getBottomMicrophone().isPresent()) {
+                byte[] bytes = {1, 2, 3, 4};
+                byte[] bytes_out = {0, 0, 0, 0};
+                ByteBuffer bb = ByteBuffer.allocateDirect(4);
+                ByteBuffer bo = ByteBuffer.allocateDirect(4);
+                bb.put(bytes);
+                bo.put(bytes_out);
+                new RustLib().createLogMelSpectogramFromAudioBytes(bb, 4, bo, 4);
+
+                Log.i("createLogMelSpectogramFromAudioBytes", "onCreateInputView: " + bo.get(0) + bo.get(1) + bo.get(2) + bo.get(3));
                 startRecording();
             } else {
                 String result = endRecording();
@@ -66,7 +74,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         recorder.setAudioChannels(1);
         recorder.setAudioSamplingRate(16000);
-        recorder.setOutputFile(new File(getCacheDir(), "audio.mp4"));
+        recorder.setOutputFile(new File(getCacheDir(), "whisper_keyboard_user_voice.mp4"));
         return recorder;
     }
 
@@ -80,6 +88,12 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     }
 
     private void startRecording() {
+        File file = new File(getCacheDir(), "audio.mp4");
+        boolean _success = file.delete();
+        _recordingThread.ifPresent(RecordingThread::startRecording);
+    }
+
+    private void abortRecording() {
         File file = new File(getCacheDir(), "audio.mp4");
         file.delete();
         _recordingThread.ifPresent(RecordingThread::startRecording);
