@@ -1,9 +1,13 @@
 package com.example.whisperVoiceRecognition;
 
-import android.content.Context;
+import java.nio.ByteBuffer;
 
 public class RustLib {
 
+    static {
+        System.loadLibrary("rust");
+        RustLib.initLogger();
+    }
 
     //
 //    public void retrieveAssetPub(AssetManager assetManager) {
@@ -20,13 +24,9 @@ public class RustLib {
 //     * @param sampleRate AudioManager sample rate for the device
 //     * @param channels AudioManager Channels for the device
 //     */
-    public static native void init(Context context);
+    public static native void initLogger();
 
-    public static native void uninit();
+    public native boolean createLogMelSpectogramFromAudioBytes(ByteBuffer audio, int audioLen, ByteBuffer output, int outputLen);
 
-    public static native boolean startRecording(int deviceId, int sampleRate, int channels);
 
-    public static native String endRecording();
-
-    public static native boolean abortRecording();
 }

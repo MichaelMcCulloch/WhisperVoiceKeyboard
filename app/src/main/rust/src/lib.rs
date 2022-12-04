@@ -1,67 +1,70 @@
-use jni::sys::{jboolean, jint, jstring};
-use jni::JNIEnv;
+use std::{
+    ffi::c_void,
+    mem::{self, ManuallyDrop},
+};
 
-mod asset_helper;
-pub(crate) mod constants;
-mod lifetime;
-mod statics;
-mod transcription;
-pub(crate) mod whisper;
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecording(
-    env: JNIEnv,
-    _class: jni::objects::JClass,
-    device_id: jint,
-    sample_rate: jint,
-    channels: jint,
-    whisper_path: jni::objects::JString,
-) -> jboolean {
-    let input: String = env
-        .get_string(whisper_path)
-        .expect("Couldn't get java string!")
-        .into();
-    transcription::recording::start_recording(device_id, sample_rate, channels, &input)
-}
+use android_logger::Config;
+use jni::{
+    objects::{JByteBuffer, JClass, JObject},
+    sys::{jboolean, jint},
+    JNIEnv,
+};
+use log::Level;
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
-    env: JNIEnv,
-    _class: jni::objects::JClass,
-) -> jstring {
-    transcription::recording::end_recording(env).expect("Unable to transcribe")
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_abortRecording(
-    _env: JNIEnv,
-    _class: jni::objects::JClass,
-) -> jboolean {
-    match transcription::recording::abort_recording() {
-        Ok(_) => true.into(),
-        Err(_) => false.into(),
-    }
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
-    env: JNIEnv,
-    _class: jni::objects::JClass,
-    context: jni::objects::JObject,
-) {
-    lifetime::init(env, context);
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_uninit(
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_initLogger(
     _env: JNIEnv,
     _class: jni::objects::JClass,
 ) {
-    lifetime::uninit();
+    android_logger::init_once(Config::default().with_min_level(Level::Trace));
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_createLogMelSpectogramFromAudioBytes(
+    env: JNIEnv,
+    _class: JClass,
+    audio_buffer: JByteBuffer,
+    audio_buffer_len: jint,
+    output_buffer: JByteBuffer,
+    output_buffer_len: jint,
+) -> jboolean {
+    let bytes = read_jbyte_buffer(env, audio_buffer, audio_buffer_len);
+    let mut output = read_jbyte_buffer(env, output_buffer, output_buffer_len);
+
+    let floats = bytes
+        .chunks_exact(4)
+        .map(|four_bytes| {
+            let u = [four_bytes[0], four_bytes[1], four_bytes[2], four_bytes[3]];
+            let f32 = f32::from_be_bytes(u);
+            f32
+        })
+        .collect::<Vec<_>>();
+
+    let float_write = floats.clone();
+
+    let bytes_write = float_write
+        .into_iter()
+        .flat_map(|f| f.to_be_bytes())
+        .collect::<Vec<_>>();
+
+    output.copy_from_slice(&bytes_write);
+
+    log::info!("COMPLETED");
+    true.into()
+}
+
+fn read_jbyte_buffer(
+    env: JNIEnv,
+    audio_buffer: JByteBuffer,
+    audio_buffer_len: i32,
+) -> ManuallyDrop<Vec<u8>> {
+    let audio = env.get_direct_buffer_address(audio_buffer).unwrap();
+    let bytes =
+        unsafe { Vec::from_raw_parts(audio, audio_buffer_len as usize, audio_buffer_len as usize) };
+    let bytes = ManuallyDrop::new(bytes);
+    bytes
 }
 
 /// ```

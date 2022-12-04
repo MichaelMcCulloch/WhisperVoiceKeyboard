@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.WhisperVoiceKeyboard"
-        minSdk 30
+        minSdk 33
         //noinspection ExpiredTargetSdkVersion
         targetSdk 33
         versionCode 1
@@ -33,12 +33,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     ndkVersion '25.1.8937393'
-    buildToolsVersion '33.0.0'
+    buildToolsVersion '33.0.1'
 }
 
 cargoNdk {
     targets = ["arm64", "x86_64"]
-    apiLevel = 33
+    apiLevel = 30
 
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
