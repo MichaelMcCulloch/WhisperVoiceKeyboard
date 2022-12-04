@@ -15,7 +15,7 @@ anyhow= "1.0.66"
 mel = "0.3.0"
 nalgebra ="0.31.4"
 
-
+ac-ffmpeg = "0.17.4"
 
 [profile.release]
 lto = true

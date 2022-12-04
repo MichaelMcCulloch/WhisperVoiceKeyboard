@@ -1,6 +1,7 @@
 use std::{
     ffi::c_void,
     mem::{self, ManuallyDrop},
+    usize,
 };
 
 use android_logger::Config;
@@ -26,12 +27,21 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_createLogMelS
     env: JNIEnv,
     _class: JClass,
     audio_buffer: JByteBuffer,
-    audio_buffer_len: jint,
     output_buffer: JByteBuffer,
-    output_buffer_len: jint,
 ) -> jboolean {
-    let bytes = read_jbyte_buffer(env, audio_buffer, audio_buffer_len);
-    let mut output = read_jbyte_buffer(env, output_buffer, output_buffer_len);
+    match create_log_mel_spectrogram_from_audio_bytes(env, audio_buffer, output_buffer) {
+        Ok(_) => true.into(),
+        Err(_) => false.into(),
+    }
+}
+
+fn create_log_mel_spectrogram_from_audio_bytes(
+    env: JNIEnv,
+    audio_buffer: JByteBuffer,
+    output_buffer: JByteBuffer,
+) -> anyhow::Result<()> {
+    let bytes = read_jbyte_buffer(env, audio_buffer)?;
+    let mut output = read_jbyte_buffer(env, output_buffer)?;
 
     let floats = bytes
         .chunks_exact(4)
@@ -41,30 +51,24 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_createLogMelS
             f32
         })
         .collect::<Vec<_>>();
-
     let float_write = floats.clone();
-
     let bytes_write = float_write
         .into_iter()
         .flat_map(|f| f.to_be_bytes())
         .collect::<Vec<_>>();
-
     output.copy_from_slice(&bytes_write);
-
-    log::info!("COMPLETED");
-    true.into()
+    Ok(())
 }
 
 fn read_jbyte_buffer(
     env: JNIEnv,
     audio_buffer: JByteBuffer,
-    audio_buffer_len: i32,
-) -> ManuallyDrop<Vec<u8>> {
-    let audio = env.get_direct_buffer_address(audio_buffer).unwrap();
-    let bytes =
-        unsafe { Vec::from_raw_parts(audio, audio_buffer_len as usize, audio_buffer_len as usize) };
+) -> anyhow::Result<ManuallyDrop<Vec<u8>>> {
+    let buffer_address = env.get_direct_buffer_address(audio_buffer)?;
+    let buffer_cap = env.get_direct_buffer_capacity(audio_buffer)?;
+    let bytes = unsafe { Vec::from_raw_parts(buffer_address, buffer_cap, buffer_cap) };
     let bytes = ManuallyDrop::new(bytes);
-    bytes
+    Ok(bytes)
 }
 
 /// ```
