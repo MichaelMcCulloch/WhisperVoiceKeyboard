@@ -5,7 +5,15 @@ import java.nio.ByteBuffer;
 public class RustLib {
 
     static {
+//        System.loadLibrary("avutil");
+//        System.loadLibrary("avcodec");
+//        System.loadLibrary("avformat");
+//        System.loadLibrary("swresample");
+//        System.loadLibrary("swscale");
+//        System.loadLibrary("avfilter");
+//        System.loadLibrary("avdevice");
         System.loadLibrary("rust");
+
         RustLib.initLogger();
     }
 
