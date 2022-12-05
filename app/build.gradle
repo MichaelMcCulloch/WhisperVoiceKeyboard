@@ -46,8 +46,8 @@ cargoNdk {
     def ndkDir = properties.getProperty('ndk.dir')
 
 
-    def jniInclude = "${project.rootProject.path}/app/src/main/jniInclude"
-    def jniLibs = "${project.rootProject.path}/app/src/main/jniInclude"
+    def jniInclude = "${project.rootDir}/app/src/main/jniInclude"
+    def jniLibs = "${project.rootDir}/app/src/main/jniLibs"
 
 
     targets = ["arm64", "x86_64"]
@@ -61,8 +61,8 @@ cargoNdk {
             "ANDROID_BUILD_TOOLS_VERSION"             : "33.0.1",
             "ANDROID_HOME"                            : "${sdkDir}/build-tools/33.0.1",
             "FFMPEG_INCLUDE_DIR_AARCH64_LINUX_ANDROID": "${jniInclude}/arm64-v8a/",
-            "FFMPEG_LIB_DIR_AARCH64_LINUX_ANDROID"    : "${jniLibs}/arm64-v8a/",
             "FFMPEG_INCLUDE_DIR_X86_64_LINUX_ANDROID" : "${jniInclude}/x86_64/",
+            "FFMPEG_LIB_DIR_AARCH64_LINUX_ANDROID"    : "${jniLibs}/arm64-v8a/",
             "FFMPEG_LIB_DIR_X86_64_LINUX_ANDROID"     : "${jniLibs}/x86_64/",
     ]
 
