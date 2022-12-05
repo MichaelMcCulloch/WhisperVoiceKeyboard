@@ -63,7 +63,8 @@ cargoNdk {
             "FFMPEG_INCLUDE_DIR_AARCH64_LINUX_ANDROID": "${jniInclude}/arm64-v8a/",
             "FFMPEG_LIB_DIR_AARCH64_LINUX_ANDROID"    : "${jniLibs}/arm64-v8a/",
             "FFMPEG_INCLUDE_DIR_X86_64_LINUX_ANDROID" : "${jniInclude}/x86_64/",
-            "FFMPEG_LIB_DIR_X86_64_LINUX_ANDROID"     : "${jniLibs}/x86_64/"]
+            "FFMPEG_LIB_DIR_X86_64_LINUX_ANDROID"     : "${jniLibs}/x86_64/",
+    ]
 
 
 }

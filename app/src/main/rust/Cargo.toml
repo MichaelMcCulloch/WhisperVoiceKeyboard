@@ -18,7 +18,8 @@ nalgebra ="0.31.4"
 ac-ffmpeg = { git = "https://github.com/MichaelMcCulloch/rust-ac-ffmpeg", branch="master"}
 
 [profile.release]
-
+lto = true
+strip = true
 
 [lib]
 name = "rust"

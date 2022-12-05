@@ -5,13 +5,20 @@ use std::{
     usize,
 };
 
-use ac_ffmpeg::codec::audio::{
-    resampler::{AudioResampler, AudioResamplerBuilder},
-    ChannelLayout, SampleFormat,
+use ac_ffmpeg::{
+    codec::{
+        audio::{
+            frame::get_sample_format,
+            resampler::{AudioResampler, AudioResamplerBuilder},
+            ChannelLayout, SampleFormat,
+        },
+        video::VideoFrameScaler,
+    },
+    format::demuxer::Demuxer,
 };
 use android_logger::Config;
 use jni::{
-    objects::{JByteBuffer, JClass, JObject},
+    objects::{JByteBuffer, JClass, JObject, JString},
     sys::{jboolean, jint},
     JNIEnv,
 };
@@ -47,17 +54,21 @@ fn create_log_mel_spectrogram_from_audio_bytes(
 ) -> anyhow::Result<()> {
     // let bytes = read_jbyte_buffer(env, audio_buffer)?;
     // let mut output = read_jbyte_buffer(env, output_buffer)?;
-    let resampler = AudioResampler::builder()
-        .source_channel_layout(ChannelLayout::from_channels(2).unwrap())
-        .source_sample_format(SampleFormat::from_str("AV_SAMPLE_FMT_S16").unwrap())
+    log::info!("A");
+    log::info!("b");
+    log::info!("c");
+
+    AudioResampler::builder()
+        .source_channel_layout(ChannelLayout::from_channels(2).unwrap().clone())
+        .source_sample_format(SampleFormat::from_str("s16").unwrap())
         .source_sample_rate(48000)
-        .target_channel_layout(ChannelLayout::from_channels(2).unwrap())
-        .target_sample_format(SampleFormat::from_str("AV_SAMPLE_FMT_S16").unwrap())
-        .target_sample_rate(48000)
-        .target_frame_samples(Some(2))
+        .target_channel_layout(ChannelLayout::from_channels(1).unwrap())
+        .target_sample_format(SampleFormat::from_str("s16").unwrap())
+        .target_sample_rate(16000)
         .build()
         .unwrap();
 
+    log::info!("d");
     // let floats = bytes
     //     .chunks_exact(4)
     //     .map(|four_bytes| {
