@@ -52,11 +52,8 @@ fn create_log_mel_spectrogram_from_audio_bytes(
     audio_buffer: JByteBuffer,
     output_buffer: JByteBuffer,
 ) -> anyhow::Result<()> {
-    // let bytes = read_jbyte_buffer(env, audio_buffer)?;
-    // let mut output = read_jbyte_buffer(env, output_buffer)?;
-    log::info!("A");
-    log::info!("b");
-    log::info!("c");
+    let bytes = read_jbyte_buffer(env, audio_buffer)?;
+    let mut output = read_jbyte_buffer(env, output_buffer)?;
 
     AudioResampler::builder()
         .source_channel_layout(ChannelLayout::from_channels(2).unwrap().clone())
@@ -68,21 +65,20 @@ fn create_log_mel_spectrogram_from_audio_bytes(
         .build()
         .unwrap();
 
-    log::info!("d");
-    // let floats = bytes
-    //     .chunks_exact(4)
-    //     .map(|four_bytes| {
-    //         let u = [four_bytes[0], four_bytes[1], four_bytes[2], four_bytes[3]];
-    //         let f32 = f32::from_be_bytes(u);
-    //         f32
-    //     })
-    //     .collect::<Vec<_>>();
-    // let float_write = floats.clone();
-    // let bytes_write = float_write
-    //     .into_iter()
-    //     .flat_map(|f| f.to_be_bytes())
-    //     .collect::<Vec<_>>();
-    // output.copy_from_slice(&bytes_write);
+    let floats = bytes
+        .chunks_exact(4)
+        .map(|four_bytes| {
+            let u = [four_bytes[0], four_bytes[1], four_bytes[2], four_bytes[3]];
+            let f32 = f32::from_be_bytes(u);
+            f32
+        })
+        .collect::<Vec<_>>();
+    let float_write = floats.clone();
+    let bytes_write = float_write
+        .into_iter()
+        .flat_map(|f| f.to_be_bytes())
+        .collect::<Vec<_>>();
+    output.copy_from_slice(&bytes_write);
     Ok(())
 }
 
