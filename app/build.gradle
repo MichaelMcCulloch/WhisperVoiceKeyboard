@@ -4,42 +4,16 @@ plugins {
 
 apply plugin: "com.github.willir.rust.cargo-ndk-android"
 
-int apiLevel = 33
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-def sdkDir = properties.getProperty('sdk.dir')
-def ndkDir = properties.getProperty('ndk.dir')
-def build_tools_version = "33.0.1"
-Map<String, String> commonExtraCargoEnv = [
-        "ANDROID_SDK_HOME"           : "${sdkDir}/",
-        "ANDROID_NDK_HOME"           : "${ndkDir}/",
-        "ANDROID_NDK_API_LEVEL"      : apiLevel,
-        "ANDROID_SDK_VERSION"        : apiLevel,
-        "ANDROID_API_LEVEL"          : apiLevel,
-        "ANDROID_BUILD_TOOLS_VERSION": build_tools_version,
-        "ANDROID_HOME"               : "${sdkDir}/build-tools/${build_tools_version}"]
-
-def rustLibs = ["librust.so"]
-def jniInclude = "${project.rootProject.path}/app/src/main/jniInclude"
-def jniLibs = "${project.rootProject.path}/app/src/main/jniLibs"
-
-Map<String, String> ffmpegExtraCargoEnvAarch64 = [
-        "FFMPEG_INCLUDE_DIR": "${jniInclude}/arm64-v8a/",
-        "FFMPEG_LIB_DIR"    : "${jniLibs}/arm64-v8a/"]
-Map<String, String> ffmpegExtraCargoEnvX86_64 = [
-        "FFMPEG_INCLUDE_DIR": "${jniInclude}/x86_64/",
-        "FFMPEG_LIB_DIR"    : "${jniLibs}/x86_64/"]
-
 
 android {
     namespace 'com.example.WhisperVoiceKeyboard'
-    compileSdk apiLevel
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.example.WhisperVoiceKeyboard"
-        minSdk apiLevel
+        minSdk 33
         //noinspection ExpiredTargetSdkVersion
-        targetSdk apiLevel
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -59,20 +33,39 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     ndkVersion '25.1.8937393'
-    buildToolsVersion 'build_tools_version'
+    buildToolsVersion '33.0.1'
 }
 
 
 cargoNdk {
-    targets = ["arm64"]
-    librariesNames = rustLibs
-    extraCargoEnv = commonExtraCargoEnv + ffmpegExtraCargoEnvAarch64
-}
 
-cargoNdk {
-    targets = ["x86_64"]
-    librariesNames = rustLibs
-    extraCargoEnv = commonExtraCargoEnv + ffmpegExtraCargoEnvX86_64
+    int apiLevel = 33
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def sdkDir = properties.getProperty('sdk.dir')
+    def ndkDir = properties.getProperty('ndk.dir')
+
+
+    def jniInclude = "${project.rootProject.path}/app/src/main/jniInclude"
+    def jniLibs = "${project.rootProject.path}/app/src/main/jniInclude"
+
+
+    targets = ["arm64", "x86_64"]
+    librariesNames = ["librust.so"]
+    extraCargoEnv = [
+            "ANDROID_SDK_HOME"                        : "${sdkDir}/",
+            "ANDROID_NDK_HOME"                        : "${ndkDir}/",
+            "ANDROID_NDK_API_LEVEL"                   : apiLevel,
+            "ANDROID_SDK_VERSION"                     : apiLevel,
+            "ANDROID_API_LEVEL"                       : apiLevel,
+            "ANDROID_BUILD_TOOLS_VERSION"             : "33.0.1",
+            "ANDROID_HOME"                            : "${sdkDir}/build-tools/33.0.1",
+            "FFMPEG_INCLUDE_DIR_AARCH64_LINUX_ANDROID": "${jniInclude}/arm64-v8a/",
+            "FFMPEG_LIB_DIR_AARCH64_LINUX_ANDROID"    : "${jniLibs}/arm64-v8a/",
+            "FFMPEG_INCLUDE_DIR_X86_64_LINUX_ANDROID" : "${jniInclude}/x86_64/",
+            "FFMPEG_LIB_DIR_X86_64_LINUX_ANDROID"     : "${jniLibs}/x86_64/"]
+
+
 }
 
 
