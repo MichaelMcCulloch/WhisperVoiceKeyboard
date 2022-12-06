@@ -19,7 +19,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_initLogger(
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_createLogMelSpectogramFromAudioBytes(
+pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_createLogMelSpectrogramFromAudioBytes(
     env: JNIEnv,
     _class: JClass,
     audio_buffer: JByteBuffer,
