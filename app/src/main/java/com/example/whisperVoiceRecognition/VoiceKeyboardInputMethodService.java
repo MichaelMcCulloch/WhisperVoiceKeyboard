@@ -53,9 +53,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 ByteBuffer bo = ByteBuffer.allocateDirect(4);
                 bb.put(bytes);
                 bo.put(bytes_out);
-                new RustLib().createLogMelSpectogramFromAudioBytes(bb, bo);
+                new RustLib().createLogMelSpectrogramFromAudioBytes(bb, bo);
 
-                Log.i("createLogMelSpectogramFromAudioBytes", "onCreateInputView: " + bo.get(0) + bo.get(1) + bo.get(2) + bo.get(3));
+                Log.i("createLogMelSpectrogramFromAudioBytes", "onCreateInputView: " + bo.get(0) + bo.get(1) + bo.get(2) + bo.get(3));
                 startRecording();
             } else {
                 String result = endRecording();
