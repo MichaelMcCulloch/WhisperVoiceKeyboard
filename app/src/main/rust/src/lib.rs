@@ -1,28 +1,12 @@
-use std::{
-    ffi::c_void,
-    mem::{self, ManuallyDrop},
-    str::FromStr,
-    usize,
-};
-
-use ac_ffmpeg::{
-    codec::{
-        audio::{
-            frame::get_sample_format,
-            resampler::{AudioResampler, AudioResamplerBuilder},
-            ChannelLayout, SampleFormat,
-        },
-        video::VideoFrameScaler,
-    },
-    format::demuxer::Demuxer,
-};
+use ac_ffmpeg::codec::audio::{resampler::AudioResampler, ChannelLayout, SampleFormat};
 use android_logger::Config;
 use jni::{
-    objects::{JByteBuffer, JClass, JObject, JString},
-    sys::{jboolean, jint},
+    objects::{JByteBuffer, JClass},
+    sys::jboolean,
     JNIEnv,
 };
 use log::Level;
+use std::{mem::ManuallyDrop, str::FromStr};
 
 #[no_mangle]
 #[allow(non_snake_case)]
@@ -55,7 +39,7 @@ fn create_log_mel_spectrogram_from_audio_bytes(
     let bytes = read_jbyte_buffer(env, audio_buffer)?;
     let mut output = read_jbyte_buffer(env, output_buffer)?;
 
-    AudioResampler::builder()
+    let _resampler = AudioResampler::builder()
         .source_channel_layout(ChannelLayout::from_channels(2).unwrap().clone())
         .source_sample_format(SampleFormat::from_str("s16").unwrap())
         .source_sample_rate(48000)
