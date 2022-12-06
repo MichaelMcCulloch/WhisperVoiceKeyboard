@@ -1,6 +1,7 @@
 package com.example.whisperVoiceRecognition;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 public class RustLib {
 
@@ -8,7 +9,6 @@ public class RustLib {
 
         System.loadLibrary("rust");
 
-        RustLib.initLogger();
     }
 
     //
@@ -26,20 +26,31 @@ public class RustLib {
 //     * @param sampleRate AudioManager sample rate for the device
 //     * @param channels AudioManager Channels for the device
 //     */
-    public static native void initLogger();
+//    public static native void initLogger();
+//
+//    public native boolean createLogMelSpectrogramFromAudioBytes(ByteBuffer audio, ByteBuffer output);
 
-    public native boolean createLogMelSpectrogramFromAudioBytes(ByteBuffer audio, ByteBuffer output);
+    public static boolean startRecording(AudioDeviceConfig deviceConfig) {
+        return RustLib.startRecording(deviceConfig.getDeviceId(), deviceConfig.getDeviceSampleRate(), deviceConfig.getDeviceChannels());
+    }
 
+    public static Optional<ByteBuffer> endRecording() {
+        ByteBuffer logMelSpectrogramBuffer = ByteBuffer.allocateDirect(4);
+        if (RustLib.endRecording(logMelSpectrogramBuffer)) {
+            return Optional.of(logMelSpectrogramBuffer);
+        } else return Optional.empty();
+
+    }
 
     public static native void init();
 
     public static native void uninit();
 
-    public static native boolean startRecording(int deviceId, int sampleRate, int channels);
+    private static native boolean startRecording(int deviceId, int sampleRate, int channels);
 
-    public static native ByteBuffer endRecordingGetSpectrogram();
+    private static native boolean endRecording(ByteBuffer logMelSpectrogramBuffer);
 
-    public static native boolean abortRecording();
+    private static native boolean abortRecording();
 
 
 }
