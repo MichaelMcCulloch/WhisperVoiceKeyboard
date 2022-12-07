@@ -21,14 +21,14 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     @Override
     public void onCreate() {
         super.onCreate();
-        RustLib.init(getCacheDir().getAbsolutePath());
+        RustLib.init();
 
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         RustLib.uninit();
+        super.onDestroy();
     }
 
     @Override

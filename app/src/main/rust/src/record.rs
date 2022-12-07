@@ -1,24 +1,4 @@
-use std::{
-    mem::ManuallyDrop,
-    slice,
-    str::FromStr,
-    sync::{
-        mpsc::{channel, Receiver},
-        Arc,
-    },
-    thread,
-    time::Duration,
-};
-
-use ac_ffmpeg::codec::audio::{
-    AudioFrame, AudioFrameMut, AudioResampler, ChannelLayout, SampleFormat,
-};
-use crossbeam_queue::ArrayQueue;
-use jni::objects::JByteBuffer;
-use ndk::audio::{
-    AudioAllowedCapturePolicy, AudioCallbackResult, AudioDirection, AudioPerformanceMode,
-    AudioSharingMode, AudioStream, AudioStreamBuilder, AudioStreamState,
-};
+use std::{sync::mpsc::channel, thread};
 
 use crate::{
     job,

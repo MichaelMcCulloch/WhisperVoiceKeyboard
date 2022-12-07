@@ -1,11 +1,7 @@
-use ac_ffmpeg::codec::audio::{resampler::AudioResampler, ChannelLayout, SampleFormat};
 use jni::{
-    objects::{JByteBuffer, JClass, JString},
-    sys::{jboolean, jint, jobject, jobjectArray},
+    sys::{jboolean, jint, jobject},
     JNIEnv,
 };
-use jni_util::read_jbyte_buffer;
-use std::{mem::ManuallyDrop, str::FromStr};
 
 mod jni_util;
 mod job;
@@ -20,18 +16,13 @@ pub(crate) enum Message {
     Resume,
 }
 
-static mut CACHE_DIR: Option<String> = None;
-
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
     _env: JNIEnv,
     _class: jni::objects::JClass,
-    cache_dir: JString,
 ) {
     lifetime::init();
-
-    unsafe { CACHE_DIR = Some(_env.get_string(cache_dir).unwrap().into()) };
 }
 #[no_mangle]
 #[allow(non_snake_case)]
