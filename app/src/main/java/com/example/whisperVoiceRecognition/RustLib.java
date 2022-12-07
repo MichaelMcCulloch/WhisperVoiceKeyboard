@@ -34,11 +34,9 @@ public class RustLib {
         return RustLib.startRecording(deviceConfig.getDeviceId(), deviceConfig.getDeviceSampleRate(), deviceConfig.getDeviceChannels());
     }
 
-    public static Optional<ByteBuffer> endRecording() {
-        ByteBuffer logMelSpectrogramBuffer = ByteBuffer.allocateDirect(4);
-        if (RustLib.endRecording(logMelSpectrogramBuffer)) {
-            return Optional.of(logMelSpectrogramBuffer);
-        } else return Optional.empty();
+    public static Optional<ByteBuffer> endRec() {
+        RustLib.endRecording();
+        return Optional.empty();
 
     }
 
@@ -48,7 +46,7 @@ public class RustLib {
 
     private static native boolean startRecording(int deviceId, int sampleRate, int channels);
 
-    private static native boolean endRecording(ByteBuffer logMelSpectrogramBuffer);
+    private static native boolean endRecording();
 
     private static native boolean abortRecording();
 

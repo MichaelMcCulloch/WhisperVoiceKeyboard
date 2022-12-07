@@ -1,7 +1,7 @@
 use ac_ffmpeg::codec::audio::{resampler::AudioResampler, ChannelLayout, SampleFormat};
 use jni::{
     objects::{JByteBuffer, JClass},
-    sys::{jboolean, jint},
+    sys::{jboolean, jint, jobject, jobjectArray},
     JNIEnv,
 };
 use jni_util::read_jbyte_buffer;
@@ -13,8 +13,10 @@ mod record;
 mod statics;
 
 pub(crate) enum Message {
-    Stop(ManuallyDrop<Vec<u8>>),
+    Stop,
     Abort,
+    Pause,
+    Resume,
 }
 
 #[no_mangle]
@@ -49,16 +51,12 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecordin
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
     env: JNIEnv,
     _class: jni::objects::JClass,
-    output_buffer: JByteBuffer,
 ) -> jboolean {
-    log::info!("Term");
-    match read_jbyte_buffer(env, output_buffer) {
-        Ok(buffer) => record::request_end(buffer).into(),
-        Err(e) => {
-            log::error!("{}", e);
-            false.into()
-        }
-    }
+    match record::request_end() {
+        Some(_) => {}
+        None => {}
+    };
+    true.into()
 }
 #[no_mangle]
 #[allow(non_snake_case)]

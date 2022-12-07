@@ -41,9 +41,8 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
                 RustLib.startRecording(getBottomMicrophone().get());
             } else {
-                Optional<ByteBuffer> byteBuffer = RustLib.endRecording();
+                Optional<ByteBuffer> byteBuffer = RustLib.endRec();
                 if (byteBuffer.isPresent()) {
-                    ByteBuffer b = byteBuffer.get();
                     getCurrentInputConnection().commitText("result", "result".length());
 
                 }
