@@ -1,5 +1,7 @@
 package com.example.whisperVoiceRecognition;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
@@ -35,7 +37,11 @@ public class RustLib {
     }
 
     public static Optional<ByteBuffer> endRec() {
-        RustLib.endRecording();
+        ByteBuffer buffer = RustLib.endRecording();
+        if (buffer.capacity() != 0) {
+            Log.i("BUFFER", "endRec: " + buffer.capacity());
+            return Optional.of(buffer);
+        }
         return Optional.empty();
 
     }
@@ -46,7 +52,7 @@ public class RustLib {
 
     private static native boolean startRecording(int deviceId, int sampleRate, int channels);
 
-    private static native boolean endRecording();
+    private static native ByteBuffer endRecording();
 
     private static native boolean abortRecording();
 

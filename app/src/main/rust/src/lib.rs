@@ -51,12 +51,13 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecordin
 pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
     env: JNIEnv,
     _class: jni::objects::JClass,
-) -> jboolean {
+) -> jobject {
     match record::request_end() {
-        Some(_) => {}
-        None => {}
-    };
-    true.into()
+        Some(mut data) => unsafe { env.new_direct_byte_buffer(data.as_mut_ptr(), data.len()) },
+        None => unsafe { env.new_direct_byte_buffer(vec![].as_mut_ptr(), 0) },
+    }
+    .unwrap()
+    .into_raw()
 }
 #[no_mangle]
 #[allow(non_snake_case)]
