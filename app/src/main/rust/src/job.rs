@@ -1,23 +1,11 @@
 use std::{
-    fs::File,
-    path::PathBuf,
     str::FromStr,
     sync::{mpsc::Receiver, Arc},
 };
 
-use ac_ffmpeg::{
-    codec::{
-        audio::{
-            AudioEncoder, AudioFrame, AudioFrameMut, AudioResampler, ChannelLayout, SampleFormat,
-        },
-        AudioCodecParameters, AudioCodecParametersBuilder, CodecParameters, Encoder,
-    },
-    format::{
-        io::IO,
-        muxer::{Muxer, MuxerBuilder, OutputFormat},
-    },
-    packet::Packet,
-    Error,
+use ac_ffmpeg::codec::{
+    audio::{AudioFrame, AudioFrameMut, AudioResampler, ChannelLayout, SampleFormat},
+    Encoder,
 };
 use crossbeam_queue::ArrayQueue;
 use ndk::audio::{
@@ -25,11 +13,14 @@ use ndk::audio::{
     AudioPerformanceMode, AudioSharingMode, AudioStream, AudioStreamBuilder,
 };
 
-use crate::{Message, CACHE_DIR};
+use crate::Message;
 const INTERVALS_PER_SECOND: usize = 10;
 const RECORDING_IN_SECONDS: usize = 30;
 const RECORDING_FORMAT_S16_NDK: AudioFormat = AudioFormat::PCM_I16;
+const RECORDING_FORMAT_F32_NDK: AudioFormat = AudioFormat::PCM_Float;
+/// As described by [https://ffmpeg.org](https://ffmpeg.org/doxygen/2.3/group__lavu__sampfmts.html#gaf9a51ca15301871723577c730b5865c5)
 const RECORDING_FORMAT_S16_FFMPEG: &str = "s16";
+const RECORDING_FORMAT_F32_FFMPEG: &str = "flt";
 const RESAMPLE_TARGET_HZ: u32 = 16000;
 const RESAMPLE_TARGET_CHANNELS: u32 = 1;
 
@@ -59,19 +50,15 @@ pub(crate) fn audio_job(
                 let ffmpeg_audio_frame =
                     wrap_audio_in_av_frame(channels, sample_rate, &thirty_second_audio_buffer);
 
-                // write_before(
-                //     &ffmpeg_audio_frame.clone(),
-                //     channels as u32,
-                //     sample_rate as u32,
-                // );
-
                 let mut resampler = get_resampler(channels, sample_rate);
                 resampler.push(ffmpeg_audio_frame).unwrap();
                 let frame = resampler.take().unwrap().unwrap();
 
-                // write_after(&frame.clone());
-
-                break Some(Vec::from(&frame.planes()[0].data()[0..960000]));
+                let planes = frame.planes();
+                let audio_data = &planes[0].data()[0..960000];
+                let (_pre, _f32le_audio, _post) = unsafe { audio_data.align_to::<f32>() };
+                assert!(_pre.is_empty() && _post.is_empty());
+                break Some(Vec::from(audio_data));
             }
             Ok(Message::Abort) => {
                 stop_recording(&input_stream);
@@ -92,67 +79,6 @@ pub(crate) fn audio_job(
         }
     }
 }
-
-fn write_after(frame: &AudioFrame) {
-    let output_format = OutputFormat::guess_from_file_name("audio.wav")
-        .ok_or_else(|| Error::new(format!("unable to guess output format for file: audio.wav",)))
-        .unwrap();
-    let mut encoder = AudioEncoder::builder("pcm_s16le")
-        .unwrap()
-        .bit_rate(256)
-        .sample_format(SampleFormat::from_str(RECORDING_FORMAT_S16_FFMPEG).unwrap())
-        .channel_layout(ChannelLayout::from_channels(RESAMPLE_TARGET_CHANNELS).unwrap())
-        .sample_rate(RESAMPLE_TARGET_HZ)
-        .build()
-        .unwrap();
-    let codec = encoder.codec_parameters();
-    let cache_dir = unsafe { CACHE_DIR.clone().unwrap() };
-    let mut pb = PathBuf::from(cache_dir);
-    pb.push("After.wav");
-    let file = File::create(pb.clone()).unwrap();
-    let io = IO::from_seekable_write_stream(file);
-    let mut muxer_builder = Muxer::builder();
-    muxer_builder
-        .add_stream(&CodecParameters::from(codec.clone()))
-        .unwrap();
-    let mut muxer = muxer_builder.build(io, output_format).unwrap();
-    encoder.push(frame.clone()).unwrap();
-    muxer
-        .push(encoder.take().unwrap().unwrap().with_stream_index(0))
-        .unwrap();
-    log::info!("I think I wrote a 16Khz wave file to {}", pb.display());
-}
-
-fn write_before(frame: &AudioFrame, channels: u32, sample_rate: u32) {
-    let output_format = OutputFormat::guess_from_file_name("audio.wav")
-        .ok_or_else(|| Error::new(format!("unable to guess output format for file: audio.wav",)))
-        .unwrap();
-    let mut encoder = AudioEncoder::builder("pcm_s16le")
-        .unwrap()
-        .bit_rate(256)
-        .sample_format(SampleFormat::from_str(RECORDING_FORMAT_S16_FFMPEG).unwrap())
-        .channel_layout(ChannelLayout::from_channels(channels).unwrap())
-        .sample_rate(sample_rate)
-        .build()
-        .unwrap();
-    let codec = encoder.codec_parameters();
-    let cache_dir = unsafe { CACHE_DIR.clone().unwrap() };
-    let mut pb = PathBuf::from(cache_dir);
-    pb.push("Before.wav");
-    let file = File::create(pb.clone()).unwrap();
-    let io = IO::from_seekable_write_stream(file);
-    let mut muxer_builder = Muxer::builder();
-    muxer_builder
-        .add_stream(&CodecParameters::from(codec.clone()))
-        .unwrap();
-    let mut muxer = muxer_builder.build(io, output_format).unwrap();
-    encoder.push(frame.clone()).unwrap();
-    muxer
-        .push(encoder.take().unwrap().unwrap().with_stream_index(0))
-        .unwrap();
-    log::info!("I think I wrote a 48Khz wave file to {}", pb.display());
-}
-
 fn get_audio_stream(
     device_id: i32,
     sample_rate: i32,
@@ -197,7 +123,7 @@ fn get_resampler(channels: i32, sample_rate: i32) -> AudioResampler {
         .source_sample_format(SampleFormat::from_str(RECORDING_FORMAT_S16_FFMPEG).unwrap())
         .source_sample_rate(sample_rate as u32)
         .target_channel_layout(ChannelLayout::from_channels(RESAMPLE_TARGET_CHANNELS).unwrap())
-        .target_sample_format(SampleFormat::from_str(RECORDING_FORMAT_S16_FFMPEG).unwrap())
+        .target_sample_format(SampleFormat::from_str(RECORDING_FORMAT_F32_FFMPEG).unwrap())
         .target_sample_rate(RESAMPLE_TARGET_HZ)
         .build()
         .unwrap()
