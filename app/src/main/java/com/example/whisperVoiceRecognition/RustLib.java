@@ -22,7 +22,7 @@ public class RustLib {
         return Optional.empty();
     }
 
-    public static native void init();
+    public static native void init(String cacheDir);
 
     public static native void uninit();
 
