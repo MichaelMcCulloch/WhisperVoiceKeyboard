@@ -8,6 +8,7 @@ use jni_util::read_jbyte_buffer;
 use std::{mem::ManuallyDrop, str::FromStr};
 
 mod jni_util;
+mod job;
 mod lifetime;
 mod record;
 mod statics;
