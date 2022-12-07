@@ -4,6 +4,7 @@ import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
 
@@ -20,7 +21,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     @Override
     public void onCreate() {
         super.onCreate();
-        RustLib.init();
+        RustLib.init(getCacheDir().getAbsolutePath());
 
     }
 
@@ -41,6 +42,8 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
                 RustLib.startRecording(getBottomMicrophone().get());
             } else {
+                Log.i("TAG", "endRec: " + getApplicationContext().getPackageName());
+
                 Optional<ByteBuffer> byteBuffer = RustLib.endRec();
                 if (byteBuffer.isPresent()) {
                     getCurrentInputConnection().commitText("result", "result".length());
