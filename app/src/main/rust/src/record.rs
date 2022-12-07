@@ -141,11 +141,11 @@ fn audio_job(
     log_trace_audio_stream_info(&input_stream);
     start_recording(&input_stream);
 
-    let ret = loop {
+    loop {
         match recv.recv() {
             Ok(Message::Stop) => {
                 stop_recording(&input_stream);
-                log::info!("a");
+
                 // convert the input signal to 16khz mono
 
                 //Produce some silence within FFMPEG
@@ -155,18 +155,19 @@ fn audio_job(
                     sample_rate as u32,
                     sample_rate as usize * 30,
                 );
-                log::info!("b");
+
                 let mut planes = silence.planes_mut();
                 let plane_data = planes[0].data_mut();
-                let (__pre, plane_data_i16, _post) = unsafe { plane_data.align_to_mut::<i16>() };
                 let mut start = 0;
-                log::info!("c");
                 while let Some(vec_frames) = thirty_second_audio_buffer.pop() {
-                    // audio_buffer.append(&mut vec_frames)
-                    plane_data_i16[start..vec_frames.len() - 1].copy_from_slice(&vec_frames);
-                    start = vec_frames.len();
+                    let (_pre, bytes, _post) = unsafe { vec_frames.align_to::<u8>() };
+
+                    let target = &mut plane_data[start..(start + bytes.len())];
+                    target.copy_from_slice(bytes);
+
+                    start = bytes.len();
                 }
-                log::info!("d");
+
                 let resampler = AudioResampler::builder()
                     .source_channel_layout(ChannelLayout::from_channels(channels as u32).unwrap())
                     .source_sample_format(SampleFormat::from_str("s16").unwrap())
@@ -176,9 +177,8 @@ fn audio_job(
                     .target_sample_rate(16000)
                     .build()
                     .unwrap();
-                log::info!("e");
-                let (_, buff, _) = unsafe { plane_data_i16.align_to::<u8>() };
-                break Some(Vec::from(buff));
+
+                break Some(Vec::from(plane_data));
             }
             Ok(Message::Abort) => {
                 stop_recording(&input_stream);
@@ -197,9 +197,7 @@ fn audio_job(
                 break None;
             }
         }
-    };
-    log::info!("I see no issue here");
-    ret
+    }
 }
 
 fn get_input_stream(
