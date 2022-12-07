@@ -149,26 +149,29 @@ fn audio_job(
                 // convert the input signal to 16khz mono
 
                 //Produce some silence within FFMPEG
-                let mut silence = AudioFrameMut::silence(
-                    &ChannelLayout::from_channels(channels as u32).unwrap(),
-                    SampleFormat::from_str("s16").unwrap(),
-                    sample_rate as u32,
-                    sample_rate as usize * 30,
-                );
+                let silence = {
+                    let mut silence = AudioFrameMut::silence(
+                        &ChannelLayout::from_channels(channels as u32).unwrap(),
+                        SampleFormat::from_str("s16").unwrap(),
+                        sample_rate as u32,
+                        sample_rate as usize * 30,
+                    );
 
-                let mut planes = silence.planes_mut();
-                let plane_data = planes[0].data_mut();
-                let mut start = 0;
-                while let Some(vec_frames) = thirty_second_audio_buffer.pop() {
-                    let (_pre, bytes, _post) = unsafe { vec_frames.align_to::<u8>() };
+                    let mut planes = silence.planes_mut();
+                    let plane_data = planes[0].data_mut();
+                    let mut start = 0;
+                    while let Some(vec_frames) = thirty_second_audio_buffer.pop() {
+                        let (_pre, bytes, _post) = unsafe { vec_frames.align_to::<u8>() };
 
-                    let target = &mut plane_data[start..(start + bytes.len())];
-                    target.copy_from_slice(bytes);
+                        let target = &mut plane_data[start..(start + bytes.len())];
+                        target.copy_from_slice(bytes);
 
-                    start = bytes.len();
-                }
+                        start = bytes.len();
+                    }
+                    silence
+                };
 
-                let resampler = AudioResampler::builder()
+                let mut resampler = AudioResampler::builder()
                     .source_channel_layout(ChannelLayout::from_channels(channels as u32).unwrap())
                     .source_sample_format(SampleFormat::from_str("s16").unwrap())
                     .source_sample_rate(sample_rate as u32)
@@ -177,8 +180,10 @@ fn audio_job(
                     .target_sample_rate(16000)
                     .build()
                     .unwrap();
+                resampler.push(silence.freeze()).unwrap();
+                let frame = resampler.take().unwrap().unwrap();
 
-                break Some(Vec::from(plane_data));
+                break Some(Vec::from(frame.planes()[0].data()));
             }
             Ok(Message::Abort) => {
                 stop_recording(&input_stream);
