@@ -1,14 +1,6 @@
 use std::{sync::mpsc::Sender, thread::JoinHandle};
 
-use tflitec::interpreter::Interpreter;
+use crate::Message;
 
-use crate::{
-    transcription::recording::{Message, TranscriptionResponse},
-    whisper::{filters::WhisperFilters, vocab::WhisperVocab},
-};
-
-pub(crate) static mut VOICE_PROCESSING_THREAD: Option<JoinHandle<TranscriptionResponse>> = None;
-pub(crate) static mut VOICE_PROCESSING_THREAD_MESSENGER: Option<Sender<Message>> = None;
-pub(crate) static mut WHISPER_TFLITE_MODEL: Option<Interpreter> = None;
-pub(crate) static mut WHISPER_FILTERS: Option<WhisperFilters> = None;
-pub(crate) static mut WHISPER_VOCAB: Option<WhisperVocab> = None;
+pub(crate) static mut AUDIO_PROCESSING_THREAD: Option<JoinHandle<Option<Vec<u8>>>> = None;
+pub(crate) static mut AUDIO_PROCESSING_THREAD_MESSENGER: Option<Sender<Message>> = None;

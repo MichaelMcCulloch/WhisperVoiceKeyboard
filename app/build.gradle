@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.WhisperVoiceKeyboard"
-        minSdk 30
+        minSdk 33
         //noinspection ExpiredTargetSdkVersion
         targetSdk 33
         versionCode 1
@@ -33,31 +33,37 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     ndkVersion '25.1.8937393'
-    buildToolsVersion '33.0.0'
+    buildToolsVersion '33.0.1'
 }
 
-cargoNdk {
-    targets = ["arm64", "x86_64"]
-    apiLevel = 33
 
+cargoNdk {
+
+    int apiLevel = 33
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
     def sdkDir = properties.getProperty('sdk.dir')
     def ndkDir = properties.getProperty('ndk.dir')
+
+
+    def jniInclude = "${project.rootDir}/app/src/main/jniInclude"
+    def jniLibs = "${project.rootDir}/app/src/main/jniLibs"
+
+
+    targets = ["arm64", "x86_64"]
     librariesNames = ["librust.so"]
     extraCargoEnv = [
-            "ANDROID_SDK_HOME"                           : "${sdkDir}/",
-            "ANDROID_NDK_HOME"                           : "${ndkDir}/",
-            "ANDROID_NDK_API_LEVEL"                      : apiLevel,
-            "ANDROID_SDK_VERSION"                        : apiLevel,
-            "ANDROID_API_LEVEL"                          : apiLevel,
-            "ANDROID_BUILD_TOOLS_VERSION"                : "33.0.1",
-            "ANDROID_HOME"                               : "${sdkDir}/build-tools/33.0.1",
-//            "BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID" : "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/x86_64_linux_android/",
-//            "BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID": "-I${ndkDir}/sources/cxx-stl/llvm-libc++/include/ -I${ndkDir}/sysroot/usr/include/ -I${ndkDir}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64_linux_android/",
-            "TFLITEC_PREBUILT_PATH_X86_64_LINUX_ANDROID" : "${project.rootDir}/app/src/main/jniLibs/x86_64/libtensorflowlite_c.so",
-            "TFLITEC_PREBUILT_PATH_AARCH64_LINUX_ANDROID": "${project.rootDir}/app/src/main/jniLibs/arm64-v8a/libtensorflowlite_c.so",
-
+            "ANDROID_SDK_HOME"                        : "${sdkDir}/",
+            "ANDROID_NDK_HOME"                        : "${ndkDir}/",
+            "ANDROID_NDK_API_LEVEL"                   : apiLevel,
+            "ANDROID_SDK_VERSION"                     : apiLevel,
+            "ANDROID_API_LEVEL"                       : apiLevel,
+            "ANDROID_BUILD_TOOLS_VERSION"             : "33.0.1",
+            "ANDROID_HOME"                            : "${sdkDir}/build-tools/33.0.1",
+            "FFMPEG_INCLUDE_DIR_AARCH64_LINUX_ANDROID": "${jniInclude}/arm64-v8a/",
+            "FFMPEG_INCLUDE_DIR_X86_64_LINUX_ANDROID" : "${jniInclude}/x86_64/",
+            "FFMPEG_LIB_DIR_AARCH64_LINUX_ANDROID"    : "${jniLibs}/arm64-v8a/",
+            "FFMPEG_LIB_DIR_X86_64_LINUX_ANDROID"     : "${jniLibs}/x86_64/",
     ]
 
 

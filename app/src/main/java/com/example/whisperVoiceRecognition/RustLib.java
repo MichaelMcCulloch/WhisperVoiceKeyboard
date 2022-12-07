@@ -1,33 +1,36 @@
 package com.example.whisperVoiceRecognition;
 
-import android.content.Context;
-import android.content.res.AssetManager;
+import java.nio.ByteBuffer;
+import java.util.Optional;
 
 public class RustLib {
 
+    static {
+        System.loadLibrary("rust");
+    }
 
-    //
-//    public void retrieveAssetPub(AssetManager assetManager) {
-//        retrieveAsset(assetManager);
-//    }
-//
-//    private static native String hello(String input);
-//    private static native void retrieveAsset(AssetManager assetManager);
-//    public static native void sampleAudio();
-//
-//    /**
-//     * @param context ApplicationContext
-//     * @param deviceId AudioManager Device id for the microphone
-//     * @param sampleRate AudioManager sample rate for the device
-//     * @param channels AudioManager Channels for the device
-//     */
-    public static native void init(Context context, AssetManager assetManager, String whisperFilePath);
+
+    public static boolean startRecording(AudioDeviceConfig deviceConfig) {
+        return startRecording(deviceConfig.getDeviceId(), deviceConfig.getDeviceSampleRate(), deviceConfig.getDeviceChannels());
+    }
+
+    public static Optional<ByteBuffer> endRec() {
+        ByteBuffer buffer = endRecording();
+        if (buffer.capacity() != 0) {
+            return Optional.of(buffer);
+        }
+        return Optional.empty();
+    }
+
+    public static native void init(String cacheDir);
 
     public static native void uninit();
 
-    public static native boolean startRecording(int deviceId, int sampleRate, int channels);
+    private static native boolean startRecording(int deviceId, int sampleRate, int channels);
 
-    public static native String endRecording();
+    private static native ByteBuffer endRecording();
 
-    public static native boolean abortRecording();
+    private static native boolean abortRecording();
+
+
 }
