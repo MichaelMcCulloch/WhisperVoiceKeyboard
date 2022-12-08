@@ -10,7 +10,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.WhisperVoiceKeyboard"
+        applicationId 'com.mjm.WhisperVoiceKeyboard'
         minSdk 33
         //noinspection ExpiredTargetSdkVersion
         targetSdk 33

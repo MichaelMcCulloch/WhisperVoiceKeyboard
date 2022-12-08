@@ -562,6 +562,7 @@ dependencies = [
  "mel",
  "nalgebra 0.31.4",
  "ndk",
+ "ndk-sys",
 ]
 
 [[package]]
