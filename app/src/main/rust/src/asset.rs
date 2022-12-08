@@ -32,9 +32,8 @@ fn get_asset_manager(env: JNIEnv, asset_manager_object: JObject) -> AssetManager
 pub(crate) fn obtain_filters_vocab_binary_data(
     env: JNIEnv,
     asset_manager: JObject,
-) -> anyhow::Result<Vec<u8>> {
+) -> anyhow::Result<Asset> {
     let asset_manager = get_asset_manager(env, asset_manager);
-    let mut asset = load_asset_buffer(FILTERS_VOCAB_GEN_BIN, &asset_manager)?;
-    let buffer = asset.get_buffer()?;
-    Ok(buffer.to_vec())
+    let asset = load_asset_buffer(FILTERS_VOCAB_GEN_BIN, &asset_manager)?;
+    Ok(asset)
 }

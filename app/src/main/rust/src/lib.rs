@@ -26,9 +26,9 @@ pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_init(
     _class: jni::objects::JClass,
     asset_manager: JObject,
 ) {
-    let buffer = asset::obtain_filters_vocab_binary_data(env, asset_manager)
+    let filters_and_vocab_bits = asset::obtain_filters_vocab_binary_data(env, asset_manager)
         .expect("Could not obtain Filters, Crashing. Obviously.");
-    lifetime::init();
+    lifetime::init(filters_and_vocab_bits);
 }
 
 #[no_mangle]
