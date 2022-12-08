@@ -15,7 +15,7 @@
         android:theme="@style/Theme.WhisperVoiceKeyboard">
 
         <service
-            android:name="com.example.whisperVoiceRecognition.VoiceKeyboardInputMethodService"
+            android:name="com.mjm.whisperVoiceRecognition.VoiceKeyboardInputMethodService"
             android:label="@string/VoiceKeyboardService_label"
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true"

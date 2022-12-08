@@ -14,15 +14,19 @@ use ndk::audio::{
 };
 
 use crate::Message;
-const INTERVALS_PER_SECOND: usize = 10;
-const RECORDING_IN_SECONDS: usize = 30;
+const CALLBACK_INTERVALS_PER_SECOND: usize = 10;
+const THIRTY_SECONDS: usize = 30;
 const RECORDING_FORMAT_S16_NDK: AudioFormat = AudioFormat::PCM_I16;
-const RECORDING_FORMAT_F32_NDK: AudioFormat = AudioFormat::PCM_Float;
 /// As described by [https://ffmpeg.org](https://ffmpeg.org/doxygen/2.3/group__lavu__sampfmts.html#gaf9a51ca15301871723577c730b5865c5)
 const RECORDING_FORMAT_S16_FFMPEG: &str = "s16";
 const RECORDING_FORMAT_F32_FFMPEG: &str = "flt";
-const RESAMPLE_TARGET_HZ: u32 = 16000;
-const RESAMPLE_TARGET_CHANNELS: u32 = 1;
+
+const SIXTEEN_KHZ: usize = 16000;
+const MONO_CHANNEL: usize = 1;
+const U8_PER_I16: usize = 2;
+
+const U8_COUNT_FOR_30SECONDS_16KHZ_I16_AUDIO: usize =
+    SIXTEEN_KHZ * THIRTY_SECONDS * MONO_CHANNEL * U8_PER_I16;
 
 pub(crate) fn audio_job(
     device_id: i32,
@@ -31,7 +35,7 @@ pub(crate) fn audio_job(
     recv: Receiver<Message>,
 ) -> Option<Vec<u8>> {
     let thirty_second_audio_buffer: Arc<ArrayQueue<Vec<i16>>> = Arc::new(ArrayQueue::new(
-        (INTERVALS_PER_SECOND * RECORDING_IN_SECONDS) as usize,
+        (CALLBACK_INTERVALS_PER_SECOND * THIRTY_SECONDS) as usize,
     ));
     let input_stream = get_audio_stream(
         device_id,
@@ -55,9 +59,10 @@ pub(crate) fn audio_job(
                 let frame = resampler.take().unwrap().unwrap();
 
                 let planes = frame.planes();
-                let audio_data = &planes[0].data()[0..960000];
+                let audio_data = &planes[0].data()[0..U8_COUNT_FOR_30SECONDS_16KHZ_I16_AUDIO];
                 let (_pre, _f32le_audio, _post) = unsafe { audio_data.align_to::<f32>() };
                 assert!(_pre.is_empty() && _post.is_empty());
+
                 break Some(Vec::from(audio_data));
             }
             Ok(Message::Abort) => {
@@ -85,7 +90,7 @@ fn get_audio_stream(
     channels: i32,
     tsab: Arc<ArrayQueue<Vec<i16>>>,
 ) -> AudioStream {
-    let samples_per_interval = channels * sample_rate / INTERVALS_PER_SECOND as i32;
+    let samples_per_interval = channels * sample_rate / CALLBACK_INTERVALS_PER_SECOND as i32;
 
     let input_stream = AudioStreamBuilder::new()
         .expect("Could not get Audio Stream Builder")
@@ -116,15 +121,15 @@ fn get_audio_stream(
 
     input_stream
 }
-
+/// This Resampler will convert s16, N channel, X  kHz format to f32, 1 channel, 16kHz
 fn get_resampler(channels: i32, sample_rate: i32) -> AudioResampler {
     AudioResampler::builder()
         .source_channel_layout(ChannelLayout::from_channels(channels as u32).unwrap())
         .source_sample_format(SampleFormat::from_str(RECORDING_FORMAT_S16_FFMPEG).unwrap())
         .source_sample_rate(sample_rate as u32)
-        .target_channel_layout(ChannelLayout::from_channels(RESAMPLE_TARGET_CHANNELS).unwrap())
+        .target_channel_layout(ChannelLayout::from_channels(MONO_CHANNEL as u32).unwrap())
         .target_sample_format(SampleFormat::from_str(RECORDING_FORMAT_F32_FFMPEG).unwrap())
-        .target_sample_rate(RESAMPLE_TARGET_HZ)
+        .target_sample_rate(SIXTEEN_KHZ as u32)
         .build()
         .unwrap()
 }

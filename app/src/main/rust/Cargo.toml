@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 jni = { version = "0.20.0"}
 ndk = { version= "0.7.0", features = ["api-level-30", "audio"]} 
-
+ndk-sys = "0.4.1+23.1.7779620"
 android_logger = "0.11.1"
 log = "0.4.17"
 

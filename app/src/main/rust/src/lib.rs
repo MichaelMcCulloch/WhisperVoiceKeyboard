@@ -1,13 +1,16 @@
 use jni::{
+    objects::JObject,
     sys::{jboolean, jint, jobject},
     JNIEnv,
 };
 
+mod asset;
 mod jni_util;
 mod job;
 mod lifetime;
 mod record;
 mod statics;
+mod whisper;
 
 pub(crate) enum Message {
     Stop,
@@ -18,15 +21,19 @@ pub(crate) enum Message {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_init(
-    _env: JNIEnv,
+pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_init(
+    env: JNIEnv,
     _class: jni::objects::JClass,
+    asset_manager: JObject,
 ) {
+    let buffer = asset::obtain_filters_vocab_binary_data(env, asset_manager)
+        .expect("Could not obtain Filters, Crashing. Obviously.");
     lifetime::init();
 }
+
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_uninit(
+pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_uninit(
     _env: JNIEnv,
     _class: jni::objects::JClass,
 ) {
@@ -34,7 +41,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_uninit(
 }
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecording(
+pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_startRecording(
     _env: JNIEnv,
     _class: jni::objects::JClass,
     device_id: jint,
@@ -45,7 +52,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_startRecordin
 }
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
+pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_endRecording(
     env: JNIEnv,
     _class: jni::objects::JClass,
 ) -> jobject {
@@ -58,7 +65,7 @@ pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_endRecording(
 }
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_example_whisperVoiceRecognition_RustLib_abortRecording(
+pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_abortRecording(
     _env: JNIEnv,
     _class: jni::objects::JClass,
 ) -> jboolean {
