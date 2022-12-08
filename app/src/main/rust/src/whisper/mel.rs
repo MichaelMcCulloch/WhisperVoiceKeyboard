@@ -1,5 +1,5 @@
-pub(crate) struct Mel<'mel> {
+pub(crate) struct Mel {
     n_len: usize,
     n_mel: usize,
-    data: &'mel [f32],
+    data: Vec<f32>,
 }
