@@ -13,7 +13,7 @@ use ndk::audio::{
     AudioPerformanceMode, AudioSharingMode, AudioStream, AudioStreamBuilder,
 };
 
-use crate::Message;
+use crate::{spectrogram::log_mel_spectrogram, Message};
 const CALLBACK_INTERVALS_PER_SECOND: usize = 10;
 const THIRTY_SECONDS: usize = 30;
 const RECORDING_FORMAT_S16_NDK: AudioFormat = AudioFormat::PCM_I16;
@@ -24,9 +24,12 @@ const RECORDING_FORMAT_F32_FFMPEG: &str = "flt";
 const SIXTEEN_KHZ: usize = 16000;
 const MONO_CHANNEL: usize = 1;
 const U8_PER_I16: usize = 2;
+const U8_PER_F32: usize = 4;
 
 const U8_COUNT_FOR_30SECONDS_16KHZ_I16_AUDIO: usize =
     SIXTEEN_KHZ * THIRTY_SECONDS * MONO_CHANNEL * U8_PER_I16;
+const U8_COUNT_FOR_30SECONDS_16KHZ_F32_AUDIO: usize =
+    SIXTEEN_KHZ * THIRTY_SECONDS * MONO_CHANNEL * U8_PER_F32;
 
 pub(crate) fn audio_job(
     device_id: i32,
@@ -59,10 +62,10 @@ pub(crate) fn audio_job(
                 let frame = resampler.take().unwrap().unwrap();
 
                 let planes = frame.planes();
-                let audio_data = &planes[0].data()[0..U8_COUNT_FOR_30SECONDS_16KHZ_I16_AUDIO];
-                let (_pre, _f32le_audio, _post) = unsafe { audio_data.align_to::<f32>() };
+                let audio_data = &planes[0].data()[0..U8_COUNT_FOR_30SECONDS_16KHZ_F32_AUDIO];
+                let (_pre, f32le_audio, _post) = unsafe { audio_data.align_to::<f32>() };
                 assert!(_pre.is_empty() && _post.is_empty());
-
+                let mel = log_mel_spectrogram(f32le_audio);
                 break Some(Vec::from(audio_data));
             }
             Ok(Message::Abort) => {
