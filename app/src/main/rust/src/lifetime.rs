@@ -5,7 +5,10 @@ use ndk::asset::Asset;
 
 use crate::{
     statics::WHISPER_VOCAB,
-    whisper::{filters::Filters, vocab::Vocab},
+    whisper::{
+        filters::Filters,
+        vocab::{IsMultilingual, Vocab},
+    },
 };
 pub(crate) fn init(mut buffer: Asset) {
     android_logger::init_once(android_logger::Config::default().with_min_level(log::Level::Trace));
@@ -39,12 +42,19 @@ fn extract_filters(filters_vocab_gen_bin: &mut Asset) -> anyhow::Result<Filters>
     assert_eq!(201, n_fft);
     let data = read_vec_f32(filters_vocab_gen_bin, (n_mel * n_fft) as usize)?;
     let filter = Filters::new(n_mel as usize, n_fft as usize, data);
-    log::trace!("Succeeded in Loading Filters!");
+    log::trace!(
+        "Succeeded in Loading Filters!  {} Mels; {} Filters.",
+        n_mel,
+        n_fft
+    );
 
     Ok(filter)
 }
+
+// TODO this smells pretty bad. but the compiler is happy so who am I to judge.
 fn extract_vocab(filters_vocab_gen_bin: &mut Asset) -> anyhow::Result<Vocab> {
     let word_count = read_i32(filters_vocab_gen_bin)?;
+    assert_eq!(50257, word_count);
     let mut words = HashMap::with_capacity(word_count as usize);
     for i in 0..word_count {
         let next_word_len = read_u32(filters_vocab_gen_bin)?;
@@ -55,7 +65,40 @@ fn extract_vocab(filters_vocab_gen_bin: &mut Asset) -> anyhow::Result<Vocab> {
     let mut vocab = Vocab::default();
     vocab.n_vocab = word_count;
     vocab.id_to_token = words;
-    log::trace!("Succeeded in Loading Vocab! {} Words", word_count);
+
+    // Add some more vocab ids
+    vocab.n_vocab = 51864;
+    if vocab.is_multilingual() {
+        vocab.token_eot += 1;
+        vocab.token_sot += 1;
+        vocab.token_prev += 1;
+        vocab.token_solm += 1;
+        vocab.token_not += 1;
+        vocab.token_beg += 1;
+    }
+    for i in word_count..vocab.n_vocab {
+        let word = if (i > vocab.token_beg) {
+            format!("[_TT_{}]", i - vocab.token_beg)
+        } else if i == vocab.token_eot {
+            String::from("[_EOT_]")
+        } else if i == vocab.token_sot {
+            String::from("[_SOT_]")
+        } else if i == vocab.token_prev {
+            String::from("[_PREV_]")
+        } else if i == vocab.token_not {
+            String::from("[_NOT_]")
+        } else if i == vocab.token_beg {
+            String::from("[_BEG_]")
+        } else {
+            format!("[_extra_token_{}]", i)
+        };
+        vocab.id_to_token.entry(i).or_insert(word);
+    }
+    log::trace!(
+        "Succeeded in Loading Vocab! {} ({}) Words.",
+        vocab.n_vocab,
+        vocab.id_to_token.len()
+    );
     Ok(vocab)
 }
 
