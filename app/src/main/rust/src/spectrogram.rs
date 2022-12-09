@@ -7,8 +7,9 @@ use rustfft::{num_complex::Complex32, num_traits::Zero};
 
 // Create a new FFT planner
 use crate::{
-    consts::{WHISPER_HOP_LENGTH, WHISPER_N_FFT},
-    whisper::mel::Mel,
+    consts::{WHISPER_FFT_LEN, WHISPER_HOP_LENGTH, WHISPER_MEL_LEN, WHISPER_N_FFT, WHISPER_N_MEL},
+    statics::WHISPER_FILTERS,
+    whisper::{filters, mel::Mel},
 };
 
 /// A fucking machien wrote this;
@@ -35,47 +36,77 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Mel {
 
     let mut columns = Vec::with_capacity(3000);
 
-    let num_threads = 8;
-    let thread_pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(num_threads)
-        .build()
-        .unwrap();
-    // Iterate through the audio stream, computing the STFT for each frame of audio
-    for frame in f32le_audio.chunks(hop_size) {
-        // Overlap-add the current audio frame onto the buffer
-        for (i, sample) in frame.iter().enumerate() {
-            buffer[i] += sample;
+    match unsafe { WHISPER_FILTERS.take() } {
+        Some(filters) => {
+            // Iterate through the audio stream, computing the STFT for each frame of audio
+            for frame in f32le_audio.chunks(hop_size) {
+                // Overlap-add the current audio frame onto the buffer
+                for (i, sample) in frame.iter().enumerate() {
+                    buffer[i] += sample;
+                }
+
+                // Apply the Hann window to the buffer
+                for (i, sample) in buffer.iter_mut().enumerate() {
+                    *sample *= window[i];
+                }
+
+                // Convert the samples in the buffer to complex numbers
+                let mut input: Vec<Complex32> = buffer
+                    .iter()
+                    .map(|&x| Complex32 { re: x, im: 0.0 })
+                    .collect();
+
+                // Create a buffer to hold the STFT output
+                let mut output: Vec<Complex32> = vec![Complex32 { re: 0.0, im: 0.0 }; window_size];
+
+                // Compute the STFT of the audio framefn process(&self, buffer: &mut [Complex<T>]) {
+                let mut scratch = vec![Complex32::zero(); fft.get_outofplace_scratch_len()];
+                fft.process_outofplace_with_scratch(&mut input[..], &mut output[..], &mut scratch);
+                // Compute the power spectrum of the audio frame
+                let spectrum: Vec<f32> = output.iter().map(|x| x.norm() * x.norm()).collect();
+                // Compute the magnitude spectrum of the STFT output
+                // Compute the log-mel spectrogram
+                let mut mel_spectrogram = Vec::with_capacity(WHISPER_N_MEL as usize);
+
+                for i in 0..WHISPER_N_MEL as usize {
+                    let mut dot_product: f32 = 0.0;
+
+                    for j in 0..WHISPER_FFT_LEN {
+                        let filter_value = filters.data[i * WHISPER_FFT_LEN + j];
+                        dot_product += filter_value * spectrum[j];
+                    }
+
+                    mel_spectrogram.push(dot_product.max(1e-12).ln());
+                }
+                columns.push(mel_spectrogram);
+                // Use the STFT output here (e.g. for spectral analysis or resynthesis)
+                // Add the log-Mel-frequency spectrum to the columns of the spectrogram
+
+                // Shift the samples in the buffer to prepare for the next frame
+                for i in 0..hop_size {
+                    buffer[i] = buffer[i + hop_size];
+                }
+                for i in hop_size..window_size {
+                    buffer[i] = 0.0;
+                }
+            }
+            unsafe { WHISPER_FILTERS.replace(filters) };
         }
+        None => todo!(),
+    }
 
-        // Apply the Hann window to the buffer
-        for (i, sample) in buffer.iter_mut().enumerate() {
-            *sample *= window[i];
-        }
-
-        // Convert the samples in the buffer to complex numbers
-        let mut input: Vec<Complex32> = buffer
-            .iter()
-            .map(|&x| Complex32 { re: x, im: 0.0 })
-            .collect();
-
-        // Create a buffer to hold the STFT output
-        let mut output: Vec<Complex32> = vec![Complex32 { re: 0.0, im: 0.0 }; window_size];
-
-        // Compute the STFT of the audio framefn process(&self, buffer: &mut [Complex<T>]) {
-        let mut scratch = vec![Complex32::zero(); fft.get_outofplace_scratch_len()];
-        thread_pool.install(|| {
-            fft.process_outofplace_with_scratch(&mut input[..], &mut output[..], &mut scratch);
-        });
-        // Use the STFT output here (e.g. for spectral analysis or resynthesis)
-        columns.push(output);
-        // Shift the samples in the buffer to prepare for the next frame
-        for i in 0..hop_size {
-            buffer[i] = buffer[i + hop_size];
-        }
-        for i in hop_size..window_size {
-            buffer[i] = 0.0;
+    let n_frames = columns.len();
+    let n_mels = columns[0].len();
+    let mut result = Vec::with_capacity(n_frames * n_mels);
+    for i in 0..n_mels {
+        for j in 0..n_frames {
+            result.push(columns[j][i]);
         }
     }
-    log::info!("{}", columns.len());
-    Mel::new(0, 0, vec![])
+
+    Mel::new(
+        WHISPER_MEL_LEN as usize,
+        WHISPER_N_MEL as usize,
+        columns.into_iter().flat_map(|e| e).collect(),
+    )
 }
