@@ -1,6 +1,6 @@
 pub(crate) struct Filters {
-    n_mel: usize,
-    n_fft: usize,
+    pub n_mel: usize,
+    pub n_fft: usize,
     pub data: Vec<f32>,
 }
 impl Filters {

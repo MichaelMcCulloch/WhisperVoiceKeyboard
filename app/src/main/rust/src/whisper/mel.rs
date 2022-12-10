@@ -1,7 +1,7 @@
 pub(crate) struct Mel {
     n_len: usize,
     n_mel: usize,
-    data: Vec<f32>,
+    pub data: Vec<f32>,
 }
 
 impl Mel {

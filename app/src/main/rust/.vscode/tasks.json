@@ -15,6 +15,19 @@
 			}
 		},
 		{
+			"label": "Run Test",
+			"type": "shell",
+			"command": ".vscode/runTest.sh",
+			"problemMatcher": [],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
 			"label": "Build Release",
 			"type": "shell",
 			"command": ".vscode/buildRelease.sh",
