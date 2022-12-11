@@ -41,6 +41,7 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
 
     // Set up the Hann window
     let window: Vec<f32> = (0..N_FFT)
+        .into_iter()
         .map(|i| HANN_ALPHA * (1.0 - (HANN_BETA * i as f32 / N_FFT as f32).cos()))
         .collect();
 
@@ -52,58 +53,65 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
     match unsafe { WHISPER_FILTERS.take() } {
         Some(filters) => {
             // Iterate through the audio stream, computing the STFT for each frame of audio
-            for frame in f32le_audio.chunks(HOP_LENGTH) {
-                // Overlap-add the current audio frame onto the buffer
-                for (i, sample) in frame.iter().enumerate() {
-                    buffer[i] += sample;
-                }
+            f32le_audio
+                .chunks(HOP_LENGTH)
+                .into_iter()
+                .for_each(|frame| {
+                    // Overlap-add the current audio frame onto the buffer
+                    frame.iter().enumerate().for_each(|(i, &sample)| {
+                        buffer[i] += sample;
+                    });
 
-                // Apply the Hann window to the buffer
-                for (i, sample) in buffer.iter_mut().enumerate() {
-                    *sample *= window[i];
-                }
+                    // Apply the Hann window to the buffer
+                    buffer.iter_mut().enumerate().for_each(|(i, sample)| {
+                        *sample *= window[i];
+                    });
 
-                // Convert the samples in the buffer to complex numbers
-                let mut input: Vec<Complex32> =
-                    buffer.iter().map(|&x| Complex { re: x, im: 0.0 }).collect();
+                    // Convert the samples in the buffer to complex numbers
+                    let mut input: Vec<Complex32> =
+                        buffer.iter().map(|&x| Complex { re: x, im: 0.0 }).collect();
 
-                // Create a buffer to hold the STFT output
-                let mut output: Vec<Complex32> = vec![Complex { re: 0.0, im: 0.0 }; N_FFT];
+                    // Create a buffer to hold the STFT output
+                    let mut output: Vec<Complex32> = vec![Complex { re: 0.0, im: 0.0 }; N_FFT];
 
-                // Compute the FFT of the audio frame
-                let mut scratch = vec![Complex::zero(); fft.get_outofplace_scratch_len()];
-                fft.process_outofplace_with_scratch(&mut input[..], &mut output[..], &mut scratch);
+                    // Compute the FFT of the audio frame
+                    let mut scratch = vec![Complex::zero(); fft.get_outofplace_scratch_len()];
+                    fft.process_outofplace_with_scratch(
+                        &mut input[..],
+                        &mut output[..],
+                        &mut scratch,
+                    );
 
-                // Calculate the power spectrum by squaring the real and imaginary parts of the FFT output
-                let mut power_spectrum = vec![0.0; N_FFT as usize];
-                for i in 0..N_FFT as usize {
-                    power_spectrum[i] = output[i].norm();
-                }
+                    // Calculate the power spectrum by squaring the real and imaginary parts of the FFT output
+                    let mut power_spectrum = vec![0.0; N_FFT as usize];
+                    (0..N_FFT as usize).into_iter().for_each(|i| {
+                        power_spectrum[i] = output[i].norm();
+                    });
 
-                // Sum the power spectrum with its mirrored counterpart
-                for i in 1..N_FFT as usize / 2 {
-                    power_spectrum[i] += power_spectrum[N_FFT as usize - i];
-                }
-                // Apply the Mel-frequency filters to the summed power spectrum
+                    // Sum the power spectrum with its mirrored counterpart
+                    (1..N_FFT as usize / 2).into_iter().for_each(|i| {
+                        power_spectrum[i] += power_spectrum[N_FFT as usize - i];
+                    });
+                    // Apply the Mel-frequency filters to the summed power spectrum
 
-                let mut log_mel_spec = vec![0.0; N_MEL as usize];
-                for i in 0..N_MEL as usize {
-                    for j in 0..N_FFT {
-                        log_mel_spec[i] += filters.data[i * N_FFT + j] * power_spectrum[j];
-                    }
-                }
+                    let mut log_mel_spec = vec![0.0f32; N_MEL as usize];
+                    (0..N_MEL as usize).into_iter().for_each(|i| {
+                        (0..N_FFT).into_iter().for_each(|j| {
+                            log_mel_spec[i] += filters.data[i * N_FFT + j] * power_spectrum[j];
+                        });
+                    });
 
-                columns.extend(log_mel_spec);
+                    columns.extend(log_mel_spec);
 
-                // Clear the buffer for the next frame of samples
-                buffer.copy_from_slice(&[0.0; N_FFT]);
-            }
+                    // Clear the buffer for the next frame of samples
+                    buffer.copy_from_slice(&[0.0; N_FFT]);
+                });
             // Clamp and normalize
             let mmax = columns.iter().fold(f32::MIN, |acc, f| f.max(acc));
-            for x in &mut columns {
+            columns.iter_mut().for_each(|x| {
                 *x = (*x).max(1e-10).log10().min(mmax - 8.0);
                 *x = (*x + 4.0) / 4.0;
-            }
+            });
 
             // Return the log Mel-frequency spectrogram
             unsafe { WHISPER_FILTERS.replace(filters) };
@@ -111,5 +119,6 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
         None => todo!(),
     }
 
+    log::info!("{:?}", &columns[0..16000]);
     columns
 }
