@@ -72,19 +72,11 @@ pub(crate) fn audio_job(
                 break Some(Vec::from(f32le_spectrogram));
             }
             Ok(Message::Abort) => {
-                stop_recording(&input_stream);
+                input_stream.request_stop().unwrap();
                 break None;
             }
-            Ok(Message::Resume) => {
-                input_stream.request_start().unwrap();
-                continue;
-            }
-            Ok(Message::Pause) => {
-                input_stream.request_pause().unwrap();
-                continue;
-            }
             Err(_) => {
-                stop_recording(&input_stream);
+                input_stream.request_stop().unwrap();
                 break None;
             }
         }

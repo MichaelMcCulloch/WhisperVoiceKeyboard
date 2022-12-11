@@ -71,13 +71,13 @@ pub(crate) fn request_abort() -> bool {
             match job.join() {
                 Ok(_) => true,
                 Err(_) => {
-                    log::error!("Cannot stop voice thread, Failure Joining Thread!");
+                    log::error!("Cannot Abort voice thread, Failure Joining Thread!");
                     false
                 }
             }
         }
         (_, _) => {
-            log::error!("Cannot stop voice thread, not started!");
+            log::error!("Cannot Abort voice thread, not started!");
             false
         }
     }

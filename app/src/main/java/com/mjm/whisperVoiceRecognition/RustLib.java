@@ -30,9 +30,9 @@ public class RustLib {
 
     private static native boolean startRecording(int deviceId, int sampleRate, int channels);
 
-    private static native ByteBuffer endRecording();
+    public static native boolean abortRecording();
 
-    private static native boolean abortRecording();
+    private static native ByteBuffer endRecording();
 
 
 }

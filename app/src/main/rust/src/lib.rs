@@ -18,8 +18,6 @@ mod whisper;
 pub(crate) enum Message {
     Stop,
     Abort,
-    Pause,
-    Resume,
 }
 
 #[no_mangle]
@@ -53,6 +51,7 @@ pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_startRecording(
 ) -> jboolean {
     record::request_start(device_id, sample_rate_hz, channel_count).into()
 }
+
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_endRecording(
