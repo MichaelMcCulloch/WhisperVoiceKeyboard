@@ -63,10 +63,13 @@ pub(crate) fn audio_job(
 
                 let planes = frame.planes();
                 let audio_data = &planes[0].data()[0..U8_COUNT_FOR_30SECONDS_16KHZ_F32_AUDIO];
+
                 let (_pre, f32le_audio, _post) = unsafe { audio_data.align_to::<f32>() };
                 assert!(_pre.is_empty() && _post.is_empty());
                 let mel = log_mel_spectrogram(f32le_audio);
-                break Some(Vec::from(audio_data));
+                let (_pre, f32le_spectrogram, _post) = unsafe { mel.align_to::<u8>() };
+                assert!(_pre.is_empty() && _post.is_empty());
+                break Some(Vec::from(f32le_spectrogram));
             }
             Ok(Message::Abort) => {
                 stop_recording(&input_stream);
