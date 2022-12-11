@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use crate::{
     consts::{
         WHISPER_CHUNK_SIZE, WHISPER_FFT_LEN, WHISPER_HOP_LENGTH, WHISPER_MEL_LEN, WHISPER_N_FFT,
@@ -24,32 +26,33 @@ const MEL_LEN: usize = 3000;
 
 const HOP_LENGTH: usize = 160;
 const CHUNK_SIZE: i32 = 30;
-///The log_mel_spectrogram function computes the log-mel spectrogram of an audio signal. The input to the function is a slice of f32 values representing the audio signal in little-endian format. The function returns a Mel value, which is a type representing the log-mel spectrogram of the audio signal.
-///
-///This function uses the Fast Fourier Transform (FFT) to compute the spectrogram of the audio signal, and then applies a Mel filterbank to the spectrogram to compute the log-mel spectrogram. The Mel filterbank is defined by the WHISPER_FILTERS constant, which is a static array of floating-point values representing the weights of the filters in the filterbank.
-///
-///The function applies a Hann window to the audio signal before computing the FFT, in order to reduce spectral leakage. The size of the FFT and the hop length of the window are determined by the WHISPER_N_FFT and WHISPER_HOP_LENGTH constants, respectively. The function uses a platform-specific implementation of the FFT, specified by the target_arch attribute of the function. The function is only implemented for the x86_64 and aarch64 architectures.
+// This function logs a Mel Spectrogram, which is a representation of audio signal power
+// on a set of Mel frequency bands. It uses FFT (Fast Fourier Transform) and Hann windowing
+// to calculate the power values.
 pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
-    // Create a new FFT planner
+    // Determine whether the code is running on an x86_64 or aarch64 architecture
+    // and create the appropriate FFT planner
     #[cfg(target_arch = "x86_64")]
-    let mut planner = FftPlanner::new();
+    let mut fft_planner = FftPlanner::new();
     #[cfg(target_arch = "aarch64")]
-    let mut planner = FftPlannerNeon::new().unwrap();
+    let mut fft_planner = FftPlannerNeon::new().unwrap();
 
-    // Create an FFT object with the specified window size
-    let fft = planner.plan_fft_forward(N_FFT);
+    // Create the FFT process, which is used to calculate the FFT of the audio signal
+    let fft_process = fft_planner.plan_fft_forward(N_FFT);
 
-    // Set up the Hann window
-    let window: Vec<f32> = (0..N_FFT)
+    // Create a Hann window function, which is used to reduce artifacts in the power spectrum calculation
+    let window_function = (0..HOP_LENGTH)
         .into_iter()
-        .map(|i| HANN_ALPHA * (1.0 - (HANN_BETA * i as f32 / N_FFT as f32).cos()))
-        .collect();
+        .map(|i| HANN_ALPHA * (1.0 - (HANN_BETA * i as f32 / HOP_LENGTH as f32).cos()))
+        .collect::<Vec<_>>();
 
-    // Create a buffer to hold the overlapping audio frames
-    let mut buffer: Vec<f32> = vec![0.0; N_FFT];
+    // Create a working buffer, which is used to store the audio signal
+    let mut working_buffer: Vec<f32> = vec![0.0; HOP_LENGTH];
 
-    let mut columns = Vec::with_capacity(MEL_LEN * N_MEL);
+    // Create a vector to store the Mel spectrogram columns
+    let mut mel_spectrogram_columns = Vec::with_capacity(MEL_LEN * N_MEL);
 
+    // Iterate over the audio signal frame by frame
     match unsafe { WHISPER_FILTERS.take() } {
         Some(filters) => {
             // Iterate through the audio stream, computing the STFT for each frame of audio
@@ -57,68 +60,66 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                 .chunks(HOP_LENGTH)
                 .into_iter()
                 .for_each(|frame| {
-                    // Overlap-add the current audio frame onto the buffer
+                    // and add each sample to the working buffer
                     frame.iter().enumerate().for_each(|(i, &sample)| {
-                        buffer[i] += sample;
+                        working_buffer[i] += sample;
                     });
 
-                    // Apply the Hann window to the buffer
-                    buffer.iter_mut().enumerate().for_each(|(i, sample)| {
-                        *sample *= window[i];
-                    });
+                    // Multiply each sample in the working buffer with the window function
+                    working_buffer
+                        .iter_mut()
+                        .enumerate()
+                        .for_each(|(i, sample)| {
+                            *sample *= window_function[i];
+                        });
 
-                    // Convert the samples in the buffer to complex numbers
-                    let mut input: Vec<Complex32> =
-                        buffer.iter().map(|&x| Complex { re: x, im: 0.0 }).collect();
+                    // Create an FFT work buffer and pad it with zeroes for the FFT process
+                    let mut fft_work_buffer: Vec<Complex32> = working_buffer
+                        .iter()
+                        .map(|&x| Complex { re: x, im: 0.0 })
+                        .collect();
+                    let zeroes = &[Complex32::new(0.0f32, 0.0); N_FFT - HOP_LENGTH];
+                    fft_work_buffer.extend(zeroes);
+                    fft_process.process(&mut fft_work_buffer[..]);
 
-                    // Create a buffer to hold the STFT output
-                    let mut output: Vec<Complex32> = vec![Complex { re: 0.0, im: 0.0 }; N_FFT];
-
-                    // Compute the FFT of the audio frame
-                    let mut scratch = vec![Complex::zero(); fft.get_outofplace_scratch_len()];
-                    fft.process_outofplace_with_scratch(
-                        &mut input[..],
-                        &mut output[..],
-                        &mut scratch,
-                    );
-
-                    // Calculate the power spectrum by squaring the real and imaginary parts of the FFT output
+                    // Create a power spectrum by calculating the norm of the FFT buffer
                     let mut power_spectrum = vec![0.0; N_FFT as usize];
                     (0..N_FFT as usize).into_iter().for_each(|i| {
-                        power_spectrum[i] = output[i].norm();
+                        power_spectrum[i] = fft_work_buffer[i].norm();
                     });
 
-                    // Sum the power spectrum with its mirrored counterpart
-                    (1..N_FFT as usize / 2).into_iter().for_each(|i| {
-                        power_spectrum[i] += power_spectrum[N_FFT as usize - i];
-                    });
-                    // Apply the Mel-frequency filters to the summed power spectrum
-
-                    let mut log_mel_spec = vec![0.0f32; N_MEL as usize];
+                    // Create a log Mel spectrogram by multiplying the power spectrum with the filter values
+                    let mut log_mel_spectrogram = vec![0.0f32; N_MEL as usize];
                     (0..N_MEL as usize).into_iter().for_each(|i| {
                         (0..N_FFT).into_iter().for_each(|j| {
-                            log_mel_spec[i] += filters.data[i * N_FFT + j] * power_spectrum[j];
+                            log_mel_spectrogram[i] +=
+                                filters.data[i * N_FFT + j] * power_spectrum[j];
                         });
                     });
 
-                    columns.extend(log_mel_spec);
+                    // Add the log Mel spectrogram column to the vector
+                    mel_spectrogram_columns.extend(log_mel_spectrogram);
 
-                    // Clear the buffer for the next frame of samples
-                    buffer.copy_from_slice(&[0.0; N_FFT]);
+                    // Reset the working buffer
+                    working_buffer.copy_from_slice(&[0.0; HOP_LENGTH]);
                 });
-            // Clamp and normalize
-            let mmax = columns.iter().fold(f32::MIN, |acc, f| f.max(acc));
-            columns.iter_mut().for_each(|x| {
-                *x = (*x).max(1e-10).log10().min(mmax - 8.0);
-                *x = (*x + 4.0) / 4.0;
+
+            // Calculate the maximum value of the Mel spectrogram
+            let maximum_value = mel_spectrogram_columns
+                .iter()
+                .fold(f32::MIN, |acc, f| f.max(acc));
+
+            // Map the values of the Mel spectrogram to a range of 0-1
+            mel_spectrogram_columns.iter_mut().for_each(|x| {
+                *x = ((*x).max(1e-10).log10().max(maximum_value - 8.0) + 4.0) / 4.0;
             });
 
-            // Return the log Mel-frequency spectrogram
+            // Return the Mel spectrogram columns
+
             unsafe { WHISPER_FILTERS.replace(filters) };
         }
         None => todo!(),
     }
-
-    log::info!("{:?}", &columns[0..16000]);
-    columns
+    // Return the log Mel-frequency spectrogram
+    mel_spectrogram_columns
 }
