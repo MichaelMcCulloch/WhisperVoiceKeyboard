@@ -84,21 +84,25 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                 for i in 1..N_FFT as usize / 2 {
                     power_spectrum[i] += power_spectrum[N_FFT as usize - i];
                 }
+                // Apply the Mel-frequency filters to the summed power spectrum
+
                 let mut log_mel_spec = vec![0.0; N_MEL as usize];
                 for i in 0..N_MEL as usize {
                     for j in 0..N_FFT {
                         log_mel_spec[i] += filters.data[i * N_FFT + j] * power_spectrum[j];
                     }
-                    log_mel_spec[i] = log_mel_spec[i].max(1e-10).log10();
-                    log_mel_spec[i] = log_mel_spec[i].max(log_mel_spec[i] - 8.0);
-                    log_mel_spec[i] = (log_mel_spec[i] + 4.0) / 4.0;
                 }
-                // Apply the Mel-frequency filters to the summed power spectrum
 
                 columns.extend(log_mel_spec);
 
                 // Clear the buffer for the next frame of samples
                 buffer.copy_from_slice(&[0.0; N_FFT]);
+            }
+            // Clamp and normalize
+            let mmax = columns.iter().fold(f32::MIN, |acc, f| f.max(acc));
+            for x in &mut columns {
+                *x = (*x).max(1e-10).log10().min(mmax - 8.0);
+                *x = (*x + 4.0) / 4.0;
             }
 
             // Return the log Mel-frequency spectrogram
@@ -106,6 +110,6 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
         }
         None => todo!(),
     }
-    log::debug!("{:?}", columns);
+
     columns
 }
