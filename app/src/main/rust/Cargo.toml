@@ -25,7 +25,8 @@ ac-ffmpeg = { git = "https://github.com/MichaelMcCulloch/rust-ac-ffmpeg", branch
 [profile.release]
 lto = true
 strip = true
-
+[profile.dev]
+opt-level = 3
 [lib]
 name = "rust"
 crate-type = ["cdylib"]

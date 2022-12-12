@@ -1,3 +1,5 @@
+use std::mem::ManuallyDrop;
+
 use jni::{
     objects::JObject,
     sys::{jboolean, jint, jobject},
@@ -59,15 +61,17 @@ pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_endRecording(
     _class: jni::objects::JClass,
 ) -> jobject {
     match record::request_end() {
-        Some(mut data) => unsafe { env.new_direct_byte_buffer(data.as_mut_ptr(), data.len()) },
-        None => unsafe { env.new_direct_byte_buffer(vec![].as_mut_ptr(), 0) },
+        Some(data) => unsafe {
+            env.new_direct_byte_buffer(ManuallyDrop::new(data).as_mut_ptr(), 960000)
+        },
+        None => unsafe { env.new_direct_byte_buffer(ManuallyDrop::new(vec![]).as_mut_ptr(), 0) },
     }
     .unwrap()
     .into_raw()
 }
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_abortRecording(
+pub extern "C" fn Java_com_mjm_whisperVoiceRecognition_RustLib_abortRec(
     _env: JNIEnv,
     _class: jni::objects::JClass,
 ) -> jboolean {

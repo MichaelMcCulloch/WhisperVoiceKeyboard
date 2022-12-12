@@ -4,21 +4,19 @@ import android.content.Context;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ToggleButton;
 
 import com.example.WhisperVoiceKeyboard.R;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalInt;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
-    
+
     private boolean recording = false;
 
     @Override
@@ -43,28 +41,25 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
 
         cancelButton.setOnClickListener(v -> {
-            if (recording) {
-                RustLib.abortRecording();
-                recording = false;
-                recordButton.setChecked(false);
-            }
+            RustLib.abortRecording();
+            recordButton.setChecked(false);
 
         });
 
         recordButton.setOnCheckedChangeListener((button, checked) -> {
             if (checked && getBottomMicrophone().isPresent()) {
 
-                recording = true;
                 RustLib.startRecording(getBottomMicrophone().get());
-            } else if (recording) {
-                Log.i("TAG", "endRec: " + getApplicationContext().getPackageName());
+            } else {
 
-                Optional<ByteBuffer> byteBuffer = RustLib.endRec();
+                Optional<float[]> byteBuffer = RustLib.endRec();
+
+
                 if (byteBuffer.isPresent()) {
+                    float[] floatBuffer = byteBuffer.get();
                     getCurrentInputConnection().commitText("result", "result".length());
 
                 }
-                recording = false;
             }
         });
 
