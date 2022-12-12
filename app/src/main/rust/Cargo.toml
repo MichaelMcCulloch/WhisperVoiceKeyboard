@@ -20,6 +20,8 @@ crossbeam-queue="0.3.8"
 rustfft = "6.1.0"
 ndarray="0.15.6"
 ndarray-ndimage= "0.3.0"
+simdeez = "1.0.7"
+
 ac-ffmpeg = { git = "https://github.com/MichaelMcCulloch/rust-ac-ffmpeg", branch="master"}
 
 [profile.release]
