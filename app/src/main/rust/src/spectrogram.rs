@@ -2,14 +2,9 @@ use std::sync::Arc;
 
 use crate::{statics::WHISPER_FILTERS, whisper::filters::Filters};
 use nalgebra::Complex;
-#[cfg(target_arch = "x86_64")]
-use rustfft::FftPlanner;
-#[cfg(target_arch = "aarch64")]
-use rustfft::FftPlannerNeon;
 use rustfft::{num_complex::Complex32, Fft};
 const HANN_ALPHA: f32 = 0.5;
 const HANN_BETA: f32 = -2.0 * std::f32::consts::PI;
-const SAMPLE_RATE: i32 = 16000;
 const N_FFT: usize = 201;
 
 const N_MEL: usize = 80;
@@ -126,9 +121,15 @@ const HOP_LENGTH: usize = 160;
 pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
     // Set up the FFT planner.
     #[cfg(target_arch = "x86_64")]
-    let mut fft_planner = FftPlanner::new();
+    let mut fft_planner = {
+        use rustfft::FftPlanner;
+        FftPlanner::new()
+    };
     #[cfg(target_arch = "aarch64")]
-    let mut fft_planner = FftPlannerNeon::new().unwrap();
+    let mut fft_planner = {
+        use rustfft::FftPlannerNeon;
+        FftPlannerNeon::new().unwrap()
+    };
 
     // Create the FFT process.
     let fft_process = fft_planner.plan_fft_forward(N_FFT);
