@@ -17,8 +17,6 @@ import java.util.OptionalInt;
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
 
-    private boolean recording = false;
-
     @Override
     public void onCreate() {
         super.onCreate();

@@ -5,6 +5,7 @@ use nalgebra::Complex;
 use rustfft::{num_complex::Complex32, Fft};
 const HANN_ALPHA: f32 = 0.5;
 const HANN_BETA: f32 = -2.0 * std::f32::consts::PI;
+const SAMPLE_RATE: i32 = 16000;
 const N_FFT: usize = 201;
 
 const N_MEL: usize = 80;
@@ -243,30 +244,54 @@ fn compute_logmel(power_spectrum: &[f32], filters: &Filters) -> Vec<f32> {
     // Use dot product for efficient computation
     (0..N_MEL as usize).into_iter().for_each(|i| {
         let filter = &filters.data[i * N_FFT..(i + 1) * N_FFT];
+
+        let mut j = 0;
+
         #[cfg(target_arch = "x86_64")]
-        unsafe {
+        {
             use std::arch::x86_64::*;
-            // Loads the power_spectrum into a vector of 8 floats
-            let power = _mm256_loadu_ps(power_spectrum.as_ptr());
-            // Loads the filter into a vector of 8 floats
-            let filter = _mm256_loadu_ps(filter.as_ptr());
-            // Calculates the dot product of the two vectors, with 8 bits of precision
-            let result = _mm256_dp_ps(power, filter, 0xFF);
-            // Converts the result to a single float value
-            log_mel_spectrogram[i] = _mm256_cvtss_f32(result);
+
+            // Process 8 floats at a time, looping until the end of the filter is reached
+            while j + 8 < N_FFT {
+                unsafe {
+                    // Loads the power_spectrum into a vector of 8 floats
+                    let power = _mm256_loadu_ps(power_spectrum.as_ptr());
+                    // Loads the filter into a vector of 8 floats
+                    let filter = _mm256_loadu_ps(filter.as_ptr());
+                    // Calculates the dot product of the two vectors, with 8 bits of precision
+                    let result = _mm256_dp_ps(power, filter, 0xFF);
+                    // Converts the result to a single float value and stores it in log_mel_spectrogram
+                    log_mel_spectrogram[i] += _mm256_cvtss_f32(result);
+                }
+                j += 8;
+            }
         }
 
         #[cfg(target_arch = "aarch64")]
-        unsafe {
+        {
             use std::arch::aarch64::*;
-            // Loads the power_spectrum into a vector of 4 floats
-            let power = vld1q_f32(power_spectrum.as_ptr());
-            // Loads the filter into a vector of 4 floats
-            let filter = vld1q_f32(filter.as_ptr());
-            // Calculates the fused multiply-add (FMA) of the two vectors, with 4 bits of precision
-            let result = vfmaq_f32(vdupq_n_f32(0.0), power, filter);
-            // Gets the first lane from the result vector and stores it in log_mel_spectrogram
-            log_mel_spectrogram[i] = vgetq_lane_f32(result, 0);
+
+            // Process 4 floats at a time, looping until the end of the filter is reached
+            while j + 4 < N_FFT {
+                unsafe {
+                    // Loads the power_spectrum into a vector of 4 floats
+                    let power = vld1q_f32(power_spectrum.as_ptr());
+                    // Loads the filter into a vector of 4 floats
+                    let filter = vld1q_f32(filter.as_ptr());
+                    // Calculates the fused multiply-add (FMA) of the two vectors, with 4 bits of precision
+                    let result = vfmaq_f32(vdupq_n_f32(0.0), power, filter);
+                    // Gets the first lane from the result vector and adds it to log_mel_spectrogram
+                    log_mel_spectrogram[i] += vgetq_lane_f32(result, 0);
+                }
+                j += 4;
+            }
+        }
+
+        // Process remaining elements one by one
+        while j < N_FFT {
+            log_mel_spectrogram[i] += power_spectrum[j] * filter[j];
+
+            j += 1;
         }
     });
 
