@@ -10,13 +10,13 @@ use crate::whisper::{
 
 pub(crate) fn extract_filters_and_vocab(
     filters_vocab_gen_bin: &mut Asset,
-) -> anyhow::Result<(Filters, Vocab)> {
+) -> anyhow::Result<Filters> {
     if read_u32(filters_vocab_gen_bin)? == 0x5553454e {
         let filter = extract_filters(filters_vocab_gen_bin)?;
 
-        let vocab = extract_vocab(filters_vocab_gen_bin)?;
+        // let vocab = extract_vocab(filters_vocab_gen_bin)?;
 
-        Ok((filter, vocab))
+        Ok(filter)
     } else {
         Err(anyhow!("Bad Magic"))
     }
