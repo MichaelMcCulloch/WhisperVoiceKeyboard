@@ -10,108 +10,12 @@ const HANN_ALPHA: f32 = 0.5;
 const HANN_BETA: f32 = -2.0 * std::f32::consts::PI;
 const _SAMPLE_RATE: i32 = 16000;
 const N_FFT: usize = 201;
+const FFT_LEN: usize = 400;
 
 const N_MEL: usize = 80;
 const MEL_LEN: usize = 3000;
 
 const HOP_LENGTH: usize = 160;
-// This function logs a Mel Spectrogram, which is a representation of audio signal power
-// on a set of Mel frequency bands. It uses FFT (Fast Fourier Transform) and Hann windowing
-// to calculate the power values.
-/* pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
-    // Determine whether the code is running on an x86_64 or aarch64 architecture
-    // and create the appropriate FFT planner
-    #[cfg(target_arch = "x86_64")]
-    let mut fft_planner = FftPlanner::new();
-    #[cfg(target_arch = "aarch64")]
-    let mut fft_planner = FftPlannerNeon::new().unwrap();
-
-    // Create the FFT process, which is used to calculate the FFT of the audio signal
-    let fft_process = fft_planner.plan_fft_forward(N_FFT);
-
-    // Create a Hann window function, which is used to reduce artifacts in the power spectrum calculation
-    let window_function = (0..HOP_LENGTH)
-        .into_iter()
-        .map(|i| HANN_ALPHA * (1.0 - (HANN_BETA * i as f32 / HOP_LENGTH as f32).cos()))
-        .collect::<Vec<_>>();
-
-    // Create a working buffer, which is used to store the audio signal
-    let mut working_buffer: Vec<f32> = vec![0.0; HOP_LENGTH];
-
-    // Create a vector to store the Mel spectrogram columns
-    let mut mel_spectrogram_columns = Vec::with_capacity(MEL_LEN * N_MEL);
-
-    // Iterate over the audio signal frame by frame
-    match unsafe { WHISPER_FILTERS.take() } {
-        Some(filters) => {
-            // Iterate through the audio stream, computing the STFT for each frame of audio
-            f32le_audio
-                .chunks(HOP_LENGTH)
-                .into_iter()
-                .for_each(|frame| {
-                    // and add each sample to the working buffer
-                    frame.iter().enumerate().for_each(|(i, &sample)| {
-                        working_buffer[i] += sample;
-                    });
-
-                    // Multiply each sample in the working buffer with the window function
-                    working_buffer
-                        .iter_mut()
-                        .enumerate()
-                        .for_each(|(i, sample)| {
-                            *sample *= window_function[i];
-                        });
-
-                    // Create an FFT work buffer and pad it with zeroes for the FFT process
-                    let mut fft_work_buffer: Vec<Complex32> = working_buffer
-                        .iter()
-                        .map(|&x| Complex { re: x, im: 0.0 })
-                        .collect();
-                    let zeroes = &[Complex32::new(0.0f32, 0.0); N_FFT - HOP_LENGTH];
-                    fft_work_buffer.extend(zeroes);
-                    fft_process.process(&mut fft_work_buffer[..]);
-
-                    // Create a power spectrum by calculating the norm of the FFT buffer
-                    let mut power_spectrum = vec![0.0; N_FFT as usize];
-                    (0..N_FFT as usize).into_iter().for_each(|i| {
-                        power_spectrum[i] = fft_work_buffer[i].norm();
-                    });
-
-                    // Create a log Mel spectrogram by multiplying the power spectrum with the filter values
-                    let mut log_mel_spectrogram = vec![0.0f32; N_MEL as usize];
-                    (0..N_MEL as usize).into_iter().for_each(|i| {
-                        (0..N_FFT).into_iter().for_each(|j| {
-                            log_mel_spectrogram[i] +=
-                                filters.data[i * N_FFT + j] * power_spectrum[j];
-                        });
-                    });
-
-                    // Add the log Mel spectrogram column to the vector
-                    mel_spectrogram_columns.extend(log_mel_spectrogram);
-
-                    // Reset the working buffer
-                    working_buffer.copy_from_slice(&[0.0; HOP_LENGTH]);
-                });
-
-            // Calculate the maximum value of the Mel spectrogram
-            let maximum_value = mel_spectrogram_columns
-                .iter()
-                .fold(f32::MIN, |acc, f| f.max(acc));
-
-            // Map the values of the Mel spectrogram to a range of 0-1
-            mel_spectrogram_columns.iter_mut().for_each(|x| {
-                *x = ((*x).max(1e-10).log10().max(maximum_value - 8.0) + 4.0) / 4.0;
-            });
-
-            // Return the Mel spectrogram columns
-
-            unsafe { WHISPER_FILTERS.replace(filters) };
-        }
-        None => todo!(),
-    }
-    // Return the log Mel-frequency spectrogram
-    mel_spectrogram_columns
-} */
 
 /// This method is used to generate a log mel spectrogram from a given `f32le_audio` vector. It does this by applying a window function and using an FFT process to compute the power spectrum, before computing the logmel spectrogram.
 ///
@@ -139,21 +43,23 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
             };
 
             // Create the FFT process.
-            let fft_process = fft_planner.plan_fft_forward(N_FFT);
+            let fft_process = fft_planner.plan_fft_forward(FFT_LEN);
             // Create the hann window function.
-            let window_function: Vec<_> = (0..HOP_LENGTH)
+            let window_function: Vec<_> = (0..FFT_LEN)
                 .into_iter()
-                .map(|i| HANN_ALPHA * (1.0 - (HANN_BETA * i as f32 / HOP_LENGTH as f32).cos()))
+                .map(|i| HANN_ALPHA * (1.0 - (HANN_BETA * i as f32 / FFT_LEN as f32).cos()))
                 .collect();
 
             let npar_chunks = 4;
             let par_chunk_size = f32le_audio.len() / npar_chunks;
+
             let mut result = f32le_audio
                 .par_chunks_exact(par_chunk_size)
                 .flat_map(|chunk_of_audio| {
                     // Create a working buffer and a mel spectrogram columns buffer.
-                    let mut working_buffer: Vec<f32> = vec![0.0; HOP_LENGTH];
-                    let mut mel_spectrogram_columns = Vec::with_capacity(MEL_LEN * N_MEL);
+                    let mut working_buffer: Vec<f32> = vec![0.0; FFT_LEN];
+                    let mut mel_spectrogram_columns =
+                        Vec::with_capacity(MEL_LEN / npar_chunks * N_MEL);
                     // Process each frame of audio.
                     chunk_of_audio
                         .chunks(HOP_LENGTH)
@@ -222,10 +128,6 @@ fn compute_fft(working_buffer: &[f32], fft_process: &Arc<dyn Fft<f32>>) -> Vec<C
         .map(|&x| Complex { re: x, im: 0.0 })
         .collect();
 
-    let zeroes = &[Complex32::new(0.0f32, 0.0); N_FFT - HOP_LENGTH];
-
-    fft_work_buffer.extend(zeroes);
-
     fft_process.process(&mut fft_work_buffer[..]);
 
     fft_work_buffer
@@ -233,16 +135,16 @@ fn compute_fft(working_buffer: &[f32], fft_process: &Arc<dyn Fft<f32>>) -> Vec<C
 
 /// Compute the power spectrum from an FFT result buffer.
 fn compute_power(fft_work_buffer: &[Complex32]) -> Vec<f32> {
-    let mut power_spectrum = vec![0.0; N_FFT as usize];
+    let mut power_spectrum = vec![0.0; FFT_LEN as usize];
 
-    (0..N_FFT as usize)
+    (0..FFT_LEN as usize)
         .into_iter()
         .for_each(|i| power_spectrum[i] = fft_work_buffer[i].norm_sqr());
 
     // Perform doubling of the power spectrum
-    (1..N_FFT as usize / 2)
+    (1..FFT_LEN as usize / 2)
         .into_iter()
-        .for_each(|j| power_spectrum[j] += power_spectrum[N_FFT as usize - j]);
+        .for_each(|j| power_spectrum[j] += power_spectrum[FFT_LEN as usize - j]);
 
     power_spectrum
 }
@@ -254,13 +156,13 @@ fn compute_logmel(power_spectrum: &[f32], filters: &Filters) -> Vec<f32> {
         let left = &power_spectrum[..];
         let right = &filters.data[i * N_FFT..(i + 1) * N_FFT];
 
-        log_mel_spectrogram[i] = dot_product(left, right);
+        log_mel_spectrogram[i] = dot_product(&left[0..N_FFT], right);
     });
 
     log_mel_spectrogram
 }
 
-#[cfg(target_arch = "x86_64")]
+// #[cfg(target_arch = "x86_64")]
 /// Calculates the dot product of two slices of `f32` values.
 ///
 /// # Parameters
@@ -290,8 +192,9 @@ fn dot_product(left: &[f32], right: &[f32]) -> f32 {
 
     sum
 }
-
 #[cfg(target_arch = "aarch64")]
+// #[cfg(target_arch = "aarch64")]
+/// I tried to beat the compiler. I lost.
 /// Calculates the dot product of two slices of `f32` values.
 ///
 /// # Parameters
@@ -312,29 +215,34 @@ fn dot_product(left: &[f32], right: &[f32]) -> f32 {
 /// let result = dot_product(&left, &right);
 /// assert_eq!(result, 32.0f32);
 /// ```
-fn dot_product(left: &[f32], right: &[f32]) -> f32 {
+fn dot_productSlow(left: &[f32], right: &[f32]) -> f32 {
+    // log::info!("{}x{}", left.len(), right.len());
     use std::arch::aarch64::{vdupq_n_f32, vfmaq_f32, vgetq_lane_f32, vld1q_f32};
-
+    // We'll pad the arrays so that their lengths are divisible by 4
     let pad_length_l = 4 - (left.len() % 4);
     let pad_length_r = 4 - (right.len() % 4);
-
+    // Create the padded arrays
     let mut pad_left = vec![0.0f32; left.len() + pad_length_l];
     let mut pad_right = vec![0.0f32; right.len() + pad_length_r];
-
+    // Copy the contents of the original arrays into the padded arrays.
     pad_left[0..left.len()].copy_from_slice(left);
     pad_right[0..right.len()].copy_from_slice(right);
-
+    // Initialize accumulator to 0.0
     let zero = unsafe { vdupq_n_f32(0.0f32) };
+    // Perform the dot product using 4-element SIMD instructions
     let result = pad_left
         .chunks_exact(4)
         .zip(pad_right.chunks_exact(4))
         .into_iter()
         .fold(zero, |acc, (left, right)| unsafe {
+            // Load the 4 elements for each array into a single SIMD vector
             let l = vld1q_f32(left.as_ptr());
             let r = vld1q_f32(right.as_ptr());
+            // Perform 4-element multiply-accumulate
             vfmaq_f32(acc, l, r)
         });
 
+    // Sum the 4 elements in the result vector
     let result = unsafe {
         vgetq_lane_f32(result, 0)
             + vgetq_lane_f32(result, 1)
@@ -351,7 +259,7 @@ fn append(mel_spectrogram_columns: &mut Vec<f32>, log_mel_spectrogram: &mut Vec<
 
 /// Reset the working buffer to all zeros.
 fn reset_working_buffer(working_buffer: &mut [f32]) {
-    working_buffer.copy_from_slice(&[0.0; HOP_LENGTH]);
+    working_buffer.copy_from_slice(&[0.0; FFT_LEN]);
 }
 
 /// Normalize the mel spectrogram columns buffer.
