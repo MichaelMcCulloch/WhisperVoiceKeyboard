@@ -92,11 +92,17 @@ fn extract_vocab(filters_vocab_gen_bin: &mut Asset) -> anyhow::Result<Vocab> {
 fn read_vec_f32(asset: &mut Asset, number_of_bytes: usize) -> Result<Vec<f32>, anyhow::Error> {
     let mut data = vec![0u8; 4 * number_of_bytes];
     asset.read_exact(&mut data)?;
-    let data: Vec<f32> = unsafe {
-        // this may well be wrong. Although it's just a big block of bytes, not sure if it's le or be or what.
-        let (_, floats, _) = data.as_slice().align_to::<f32>();
-        floats.to_vec()
-    };
+
+    let data = data
+        .chunks_exact(4)
+        .into_iter()
+        .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
+        .collect();
+    // let data: Vec<f32> = unsafe {
+    //     // this may well be wrong. Although it's just a big block of bytes, not sure if it's le or be or what.
+    //     let (_, floats, _) = data.as_slice().align_to::<f32>();
+    //     floats.to_vec()
+    // };
     Ok(data)
 }
 
