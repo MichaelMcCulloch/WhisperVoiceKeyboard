@@ -12,7 +12,6 @@ mod extract;
 mod jni_util;
 mod job;
 mod lifetime;
-mod matmul;
 mod record;
 mod spectrogram;
 mod statics;

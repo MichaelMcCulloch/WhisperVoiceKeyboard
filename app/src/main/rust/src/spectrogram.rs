@@ -2,12 +2,13 @@ use std::sync::Arc;
 
 use crate::{statics::WHISPER_FILTERS, whisper::filters::Filters};
 use nalgebra::Complex;
+use ndk_sys::exit;
 use rayon::prelude::*;
 
 use rustfft::{num_complex::Complex32, Fft};
 const HANN_ALPHA: f32 = 0.5;
 const HANN_BETA: f32 = -2.0 * std::f32::consts::PI;
-const SAMPLE_RATE: i32 = 16000;
+const _SAMPLE_RATE: i32 = 16000;
 const N_FFT: usize = 201;
 
 const N_MEL: usize = 80;
@@ -147,7 +148,7 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
 
             let npar_chunks = 4;
             let par_chunk_size = f32le_audio.len() / npar_chunks;
-            let result = f32le_audio
+            let mut result = f32le_audio
                 .par_chunks_exact(par_chunk_size)
                 .flat_map(|chunk_of_audio| {
                     // Create a working buffer and a mel spectrogram columns buffer.
@@ -179,21 +180,17 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                             reset_working_buffer(&mut working_buffer);
                         });
 
-                    // Compute the maximum value of the mel spectrogram columns buffer.
-                    let maximum_value = mel_spectrogram_columns
-                        .iter()
-                        .fold(f32::MIN, |acc, f| f.max(acc));
-
-                    // Normalize the mel spectrogram columns buffer.
-                    normalize(&mut mel_spectrogram_columns, maximum_value);
-
                     // Replace the whisper filters lock.
                     mel_spectrogram_columns
                 })
                 .collect::<Vec<_>>();
             unsafe { WHISPER_FILTERS.replace(filters) };
             // Return the mel spectrogram columns buffer.
+            // Compute the maximum value of the mel spectrogram columns buffer.
+            let maximum_value = result.iter().fold(f32::MIN, |acc, f| f.max(acc));
 
+            // Normalize the mel spectrogram columns buffer.
+            normalize(&mut result, maximum_value);
             result
         }
 
@@ -240,7 +237,12 @@ fn compute_power(fft_work_buffer: &[Complex32]) -> Vec<f32> {
 
     (0..N_FFT as usize)
         .into_iter()
-        .for_each(|i| power_spectrum[i] = fft_work_buffer[i].norm());
+        .for_each(|i| power_spectrum[i] = fft_work_buffer[i].norm_sqr());
+
+    // Perform doubling of the power spectrum
+    (1..N_FFT as usize / 2)
+        .into_iter()
+        .for_each(|j| power_spectrum[j] += power_spectrum[N_FFT as usize - j]);
 
     power_spectrum
 }
@@ -248,71 +250,100 @@ fn compute_power(fft_work_buffer: &[Complex32]) -> Vec<f32> {
 /// Compute the log mel spectrogram from a power spectrum buffer and filters.
 fn compute_logmel(power_spectrum: &[f32], filters: &Filters) -> Vec<f32> {
     let mut log_mel_spectrogram = vec![0.0f32; N_MEL as usize];
-
     (0..N_MEL as usize).into_iter().for_each(|i| {
-        log_mel_spectrogram[i] = dot_product(
-            &filters.data[i * N_FFT..i * N_FFT + N_FFT],
-            &power_spectrum[..],
-        );
+        let left = &power_spectrum[..];
+        let right = &filters.data[i * N_FFT..(i + 1) * N_FFT];
+
+        log_mel_spectrogram[i] = dot_product(left, right);
     });
 
     log_mel_spectrogram
 }
 
 #[cfg(target_arch = "x86_64")]
-fn dot_product(a: &[f32], b: &[f32]) -> f32 {
-    use std::arch::x86_64::*;
+/// Calculates the dot product of two slices of `f32` values.
+///
+/// # Parameters
+///
+/// * `left` - The left slice of `f32` values.
+/// * `right` - The right slice of `f32` values.
+///
+/// # Returns
+///
+/// The dot product of the two slices.
+///
+/// # Examples
+///
+/// ```
+/// let left = [1.0f32, 2.0f32, 3.0f32];
+/// let right = [4.0f32, 5.0f32, 6.0f32];
+///
+/// let result = dot_product(&left, &right);
+/// assert_eq!(result, 32.0f32);
+/// ```
+fn dot_product(left: &[f32], right: &[f32]) -> f32 {
+    let mut sum = 0.0;
 
-    let mut sum: f32 = 0.0;
-    let mut i = 0;
-
-    // Process 8 elements at a time
-    while i + 8 <= a.len() {
-        unsafe {
-            let a_slice = _mm256_loadu_ps(a[i..i + 8].as_ptr());
-            let b_slice = _mm256_loadu_ps(b[i..i + 8].as_ptr());
-            let dot_prod = _mm256_dp_ps(a_slice, b_slice, 0xff);
-            let tmp = _mm256_hadd_ps(dot_prod, dot_prod);
-            sum += _mm256_cvtss_f32(tmp);
-        }
-        i += 8;
-    }
-
-    // Process remaining elements
-    while i < a.len() {
-        sum += a[i] * b[i];
-        i += 1;
+    for (l, r) in left.iter().zip(right.iter()) {
+        sum += l * r;
     }
 
     sum
 }
 
 #[cfg(target_arch = "aarch64")]
-fn dot_product(a: &[f32], b: &[f32]) -> f32 {
-    use std::arch::aarch64::*;
+/// Calculates the dot product of two slices of `f32` values.
+///
+/// # Parameters
+///
+/// * `left` - The left slice of `f32` values.
+/// * `right` - The right slice of `f32` values.
+///
+/// # Returns
+///
+/// The dot product of the two slices.
+///
+/// # Examples
+///
+/// ```
+/// let left = [1.0f32, 2.0f32, 3.0f32];
+/// let right = [4.0f32, 5.0f32, 6.0f32];
+///
+/// let result = dot_product(&left, &right);
+/// assert_eq!(result, 32.0f32);
+/// ```
+fn dot_product(left: &[f32], right: &[f32]) -> f32 {
+    use std::arch::aarch64::{vdupq_n_f32, vfmaq_f32, vgetq_lane_f32, vld1q_f32};
 
-    let mut sum: f32 = 0.0;
-    let mut i = 0;
+    let pad_length_l = 4 - (left.len() % 4);
+    let pad_length_r = 4 - (right.len() % 4);
 
-    // Process 4 elements at a time
-    while i + 4 <= a.len() {
-        unsafe {
-            let a_slice = vld1q_f32(a[i..i + 4].as_ptr());
-            let b_slice = vld1q_f32(b[i..i + 4].as_ptr());
-            let dot_prod = vfmaq_f32(vdupq_n_f32(0.0), a_slice, b_slice);
-            sum += vgetq_lane_f32(dot_prod, 0);
-        }
-        i += 4;
-    }
+    let mut pad_left = vec![0.0f32; left.len() + pad_length_l];
+    let mut pad_right = vec![0.0f32; right.len() + pad_length_r];
 
-    // Process remaining elements
-    while i < a.len() {
-        sum += a[i] * b[i];
-        i += 1;
-    }
+    pad_left[0..left.len()].copy_from_slice(left);
+    pad_right[0..right.len()].copy_from_slice(right);
 
-    sum
+    let zero = unsafe { vdupq_n_f32(0.0f32) };
+    let result = pad_left
+        .chunks_exact(4)
+        .zip(pad_right.chunks_exact(4))
+        .into_iter()
+        .fold(zero, |acc, (left, right)| unsafe {
+            let l = vld1q_f32(left.as_ptr());
+            let r = vld1q_f32(right.as_ptr());
+            vfmaq_f32(acc, l, r)
+        });
+
+    let result = unsafe {
+        vgetq_lane_f32(result, 0)
+            + vgetq_lane_f32(result, 1)
+            + vgetq_lane_f32(result, 2)
+            + vgetq_lane_f32(result, 3)
+    };
+    result
 }
+
 /// Append the log mel spectrogram to the mel spectrogram columns buffer.
 fn append(mel_spectrogram_columns: &mut Vec<f32>, log_mel_spectrogram: &mut Vec<f32>) {
     mel_spectrogram_columns.extend(log_mel_spectrogram.iter());
