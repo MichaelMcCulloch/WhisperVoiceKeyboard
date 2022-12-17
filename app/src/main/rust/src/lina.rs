@@ -1,6 +1,6 @@
 use rustfft::num_complex::Complex32;
 
-#[cfg(not(target_arch = "aarch64"))]
+// #[cfg(not(target_arch = "aarch64"))]
 /// Calculates the dot product of two slices of `f32` values.
 ///
 /// # Parameters
@@ -32,7 +32,7 @@ pub(crate) fn dot_product(left: &[f32], right: &[f32]) -> f32 {
 }
 #[cfg(target_arch = "aarch64")]
 // #[cfg(target_arch = "aarch64")]
-/// I tried to beat the compiler. I lost.
+/// I tried to beat the compiler. I lost. Badly
 /// Calculates the dot product of two slices of `f32` values.
 ///
 /// # Parameters
@@ -53,7 +53,7 @@ pub(crate) fn dot_product(left: &[f32], right: &[f32]) -> f32 {
 /// let result = dot_product(&left, &right);
 /// assert_eq!(result, 32.0f32);
 /// ```
-pub(crate) fn dot_product(left: &[f32], right: &[f32]) -> f32 {
+pub(crate) fn dot_productSLOW(left: &[f32], right: &[f32]) -> f32 {
     // log::info!("{}x{}", left.len(), right.len());
     use std::arch::aarch64::{vdupq_n_f32, vfmaq_f32, vgetq_lane_f32, vld1q_f32};
     // We'll pad the arrays so that their lengths are divisible by 4

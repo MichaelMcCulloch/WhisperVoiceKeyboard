@@ -2,7 +2,7 @@
     <string name="app_name">Whisper Voice Keyboard Rust</string>
     <string name="WhisperVoiceRecognitionService_label">Whisper Voice Recognition Service Rust</string>
     <string name="VoiceKeyboardService_toggleOffLabel">Record</string>
-    <string name="VoiceKeyboardService_toggleOnLabel">Transcribing...</string>
+    <string name="VoiceKeyboardService_toggleOnLabel">Transcribe</string>
     <string name="VoiceKeyboardService_pauseLabel">Pause</string>
     <string name="VoiceKeyboardService_resumeLabel">Resume</string>
     <string name="VoiceKeyboardService_cancelLabel">Cancel</string>
