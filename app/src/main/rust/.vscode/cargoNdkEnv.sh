@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export PROJECT_ROOT="$HOME/<your project folder here>"
+export PROJECT_ROOT="$HOME/AndroidStudioProjects/WhisperVoiceKeyboard"
 export JNI_LIB_DIR="$PROJECT_ROOT/app/src/main/jniLibs"
 export JNI_INCLUDE_DIR="$PROJECT_ROOT/app/src/main/jniInclude"
 export ANDROID_NDK_API_LEVEL=30

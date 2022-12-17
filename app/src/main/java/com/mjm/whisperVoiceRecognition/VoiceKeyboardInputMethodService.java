@@ -1,5 +1,6 @@
 package com.mjm.whisperVoiceRecognition;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -8,10 +9,14 @@ import android.graphics.Color;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.Pair;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
@@ -35,6 +40,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
     private static Vocab _vocab;
     private static Interpreter _whisperInterpreter;
+
 
     @Override
     public void onCreate() {
@@ -65,23 +71,50 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         super.onDestroy();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateInputView() {
         View inputView =
                 getLayoutInflater().inflate(R.layout.keyboard, null);
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
         Button cancelButton = inputView.findViewById(R.id.buttonCancel);
-
+        ImageButton deleteButton = inputView.findViewById(R.id.buttonDelete);
 //        TextView signalTxt = inputView.findViewById(R.id.textSignalTime);
 //        TextView inferenceTxt = inputView.findViewById(R.id.textInferenceTime);
-
 
         cancelButton.setOnClickListener(v -> {
             RustLib.abortRecording();
             recordButton.setChecked(false);
 
         });
+        deleteButton.setOnTouchListener(new View.OnTouchListener() {
+            private Handler mHandler;
+            final Runnable mAction = new Runnable() {
+                @Override
+                public void run() {
+                    getCurrentInputConnection().deleteSurroundingText(1, 0);
+                    mHandler.postDelayed(this, 100);
+                }
+            };
 
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (mHandler != null) return true;
+                        mHandler = new Handler(Looper.getMainLooper());
+                        mHandler.postDelayed(mAction, 100);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        if (mHandler == null) return true;
+                        mHandler.removeCallbacks(mAction);
+                        mHandler = null;
+                        return true;
+                }
+                return false;
+            }
+        });
         recordButton.setOnCheckedChangeListener((button, checked) -> {
             if (checked && getBottomMicrophone().isPresent()) {
                 RustLib.startRecording(getBottomMicrophone().get());
@@ -90,7 +123,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 Pair<Optional<float[]>, Long> byteBuffer = RustLib.endRec();
 
                 if (byteBuffer.first.isPresent()) {
-                    draw(byteBuffer.first.get());
+//                    draw(byteBuffer.first.get());
 //                    signalTxt.setText(new String(byteBuffer.second / 1000_000 + " ms"));
                     Pair<String, Long> transcribeAudio = transcribeAudio(byteBuffer.first.get());
                     String transcribed = transcribeAudio.first.trim() + " ";
@@ -140,8 +173,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 sb.append(word);
             }
         }
-        String transcribed = sb.toString();
-        return transcribed;
+        return sb.toString();
     }
 
     @NonNull
