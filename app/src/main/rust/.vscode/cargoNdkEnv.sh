@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export PROJECT_ROOT="$HOME/AndroidStudioProjects/WhisperVoiceKeyboard"
+export PROJECT_ROOT="$HOME/<your project folder here>"
 export JNI_LIB_DIR="$PROJECT_ROOT/app/src/main/jniLibs"
 export JNI_INCLUDE_DIR="$PROJECT_ROOT/app/src/main/jniInclude"
 export ANDROID_NDK_API_LEVEL=30
@@ -8,7 +8,7 @@ export ANDROID_SDK_VERSION=30
 export ANDROID_API_LEVEL=30
 export ANDROID_BUILD_TOOLS_VERSION=33.0.1
 export ANDROID_NDK_VERSION="25.1.8937393"
-export ANDROID_SDK_HOME="/home/michael/Android/Sdk"
+export ANDROID_SDK_HOME="$HOME/Android/Sdk"
 export ANDROID_HOME="$ANDROID_SDK_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION"
 export ANDROID_NDK_HOME="$ANDROID_SDK_HOME/ndk/$ANDROID_NDK_VERSION"
 export FFMPEG_INCLUDE_DIR_AARCH64_LINUX_ANDROID="$JNI_INCLUDE_DIR/arm64-v8a/"
