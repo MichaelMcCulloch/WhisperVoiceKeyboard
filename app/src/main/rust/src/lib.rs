@@ -12,10 +12,10 @@ mod extract;
 mod jni_util;
 mod job;
 mod lifetime;
+mod lina;
 mod record;
 mod spectrogram;
 mod statics;
-mod whisper;
 
 pub(crate) enum Message {
     Stop,
