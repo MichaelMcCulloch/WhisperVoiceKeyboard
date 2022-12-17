@@ -55,7 +55,9 @@ pub(crate) fn dot_product(left: &[f32], right: &[f32]) -> f32 {
 /// ```
 pub(crate) fn dot_productSLOW(left: &[f32], right: &[f32]) -> f32 {
     // log::info!("{}x{}", left.len(), right.len());
-    use std::arch::aarch64::{vdupq_n_f32, vfmaq_f32, vgetq_lane_f32, vld1q_f32};
+    use std::arch::aarch64::{
+        vdupq_n_f32, vfmaq_f32, vgetq_lane_f32, vld1_f32_x4, vld1q_f32, vld1q_f32_x4,
+    };
     // We'll pad the arrays so that their lengths are divisible by 4
     let pad_length_l = 4 - (left.len() % 4);
     let pad_length_r = 4 - (right.len() % 4);
