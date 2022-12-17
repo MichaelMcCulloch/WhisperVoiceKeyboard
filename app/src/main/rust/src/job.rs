@@ -65,6 +65,7 @@ pub(crate) fn audio_job(
                 let audio_data = &planes[0].data()[0..U8_COUNT_FOR_30SECONDS_16KHZ_F32_AUDIO];
 
                 let (_pre, f32le_audio, _post) = unsafe { audio_data.align_to::<f32>() };
+
                 assert!(_pre.is_empty() && _post.is_empty());
                 let mel = log_mel_spectrogram(f32le_audio);
                 let (_pre, f32le_spectrogram, _post) = unsafe { mel.align_to::<u8>() };
@@ -95,7 +96,6 @@ fn get_audio_stream(
         .device_id(device_id)
         .direction(AudioDirection::Input)
         .sharing_mode(AudioSharingMode::Shared)
-        .performance_mode(AudioPerformanceMode::LowLatency)
         .frames_per_data_callback(samples_per_interval)
         .sample_rate(sample_rate)
         .channel_count(channels)

@@ -21,7 +21,6 @@ import org.tensorflow.lite.Tensor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
@@ -90,21 +89,21 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             } else {
                 Optional<float[]> byteBuffer = RustLib.endRec();
                 if (byteBuffer.isPresent()) {
+
+                    draw(byteBuffer.get());
                     int[] inputShape = {1, 80, 3000};
 
                     float[][][] reshapedFloats = new float[inputShape[0]][inputShape[1]][inputShape[2]];
                     int index = 0;
-                    for (int i = 0; i < inputShape[0]; i++) {
+                    for (int k = 0; k < inputShape[2]; k++) {
                         for (int j = 0; j < inputShape[1]; j++) {
-                            for (int k = 0; k < inputShape[2]; k++) {
+                            for (int i = 0; i < inputShape[0]; i++) {
                                 reshapedFloats[i][j][k] = byteBuffer.get()[index];
                                 index++;
                             }
                         }
                     }
-                    int[] outputShape = {1, 224};
                     int[][] output = new int[1][224];
-
 
                     Map<String, Object> inputs = new HashMap<>();
                     inputs.put("input_features", reshapedFloats);
@@ -135,11 +134,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         return inputView;
     }
 
-    private void draw(FloatBuffer floatBuffer) {
+    private void draw(float[] floats) {
 
-        float[] floats = new float[240000];
-        FloatBuffer _f = floatBuffer.get(floats);
-        floatBuffer.rewind();
+
         Bitmap bitmap = Bitmap.createBitmap(3000, 80, Bitmap.Config.ARGB_8888);
 
         //Loop through the float array and save each value as a pixel in the bitmap
