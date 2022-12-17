@@ -13,7 +13,7 @@ use ndk::audio::{
     AudioPerformanceMode, AudioSharingMode, AudioStream, AudioStreamBuilder,
 };
 
-use crate::{consts::*, spectrogram::log_mel_spectrogram, Message};
+use crate::{spectrogram::log_mel_spectrogram, Message};
 const CALLBACK_INTERVALS_PER_SECOND: usize = 10;
 const THIRTY_SECONDS: usize = 30;
 const RECORDING_FORMAT_S16_NDK: AudioFormat = AudioFormat::PCM_I16;
@@ -68,13 +68,7 @@ pub(crate) fn audio_job(
 
                 assert!(_pre.is_empty() && _post.is_empty());
                 let mel = log_mel_spectrogram(f32le_audio);
-
-                let mut mel_flat = vec![0.0f32; MEL_LEN * N_MEL_BINS];
-                for i in 0..N_FFT {
-                    mel_flat[i * N_MEL_BINS..(i + 1) * N_MEL_BINS].copy_from_slice(&mel[i])
-                }
-
-                let (_pre, f32le_spectrogram, _post) = unsafe { mel_flat.align_to::<u8>() };
+                let (_pre, f32le_spectrogram, _post) = unsafe { mel.align_to::<u8>() };
                 assert!(_pre.is_empty() && _post.is_empty());
                 break Some(Vec::from(f32le_spectrogram));
             }
