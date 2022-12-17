@@ -13,10 +13,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ToggleButton;
 
+import androidx.annotation.NonNull;
+
 import com.example.WhisperVoiceKeyboard.R;
 
 import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.Tensor;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,7 +40,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         super.onCreate();
         try {
             _vocab = ExtractVocab.extractVocab(getAssets().open("filters_vocab_gen.bin"));
-            MappedByteBuffer model = loadModelFile(getAssets(), "whisper.tflite");
+            MappedByteBuffer model = loadWhisperModel(getAssets());
             Log.i("TFLITE", "onCreateInputView: " + "Created tflitemodel");
             _whisperInterpreter = new Interpreter(model);
 
@@ -74,57 +75,11 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         recordButton.setOnCheckedChangeListener((button, checked) -> {
             if (checked && getBottomMicrophone().isPresent()) {
                 RustLib.startRecording(getBottomMicrophone().get());
-                Tensor t = _whisperInterpreter.getInputTensor(0);
-                t.dataType();
-                t.shape();
-                Tensor o = _whisperInterpreter.getOutputTensor(0);
-                o.dataType();
-                o.shape();
-                for (String key : _whisperInterpreter.getSignatureInputs("serving_default")) {
-                    Log.i("SHAPE", "onCreate:" + key);
-                }
-                for (String key : _whisperInterpreter.getSignatureOutputs("serving_default")) {
-                    Log.i("SHAPE", "onCreate:" + key);
-                }
+
             } else {
                 Optional<float[]> byteBuffer = RustLib.endRec();
                 if (byteBuffer.isPresent()) {
-
-                    draw(byteBuffer.get());
-                    int[] inputShape = {1, 80, 3000};
-
-                    float[][][] reshapedFloats = new float[inputShape[0]][inputShape[1]][inputShape[2]];
-                    int index = 0;
-                    for (int k = 0; k < inputShape[2]; k++) {
-                        for (int j = 0; j < inputShape[1]; j++) {
-                            for (int i = 0; i < inputShape[0]; i++) {
-                                reshapedFloats[i][j][k] = byteBuffer.get()[index];
-                                index++;
-                            }
-                        }
-                    }
-                    int[][] output = new int[1][224];
-
-                    Map<String, Object> inputs = new HashMap<>();
-                    inputs.put("input_features", reshapedFloats);
-                    Map<String, Object> outputs = new HashMap<>();
-                    outputs.put("sequences", output);
-                    _whisperInterpreter.runSignature(inputs, outputs, "serving_default");
-
-                    StringBuilder sb = new StringBuilder();
-                    for (int token : output[0]) {
-                        if (token == _vocab.token_eot) {
-                            break;
-                        }
-                        if (token != 50257 && token != 50362) {
-                            String word = _vocab.id_to_token.get(token);
-                            Log.i("tokenization", "token: " + token + " word " + word);
-                            sb.append(word);
-                        }
-                    }
-                    String transcribed = sb.toString();
-
-
+                    String transcribed = transcribAudio(byteBuffer.get()).trim() + " ";
                     getCurrentInputConnection().commitText(transcribed, transcribed.length());
 
                 }
@@ -132,6 +87,55 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         });
 
         return inputView;
+    }
+
+    @NonNull
+    private String transcribAudio(float[] byteBuffer) {
+        int[] inputShape = {1, 80, 3000};
+
+        float[][][] reshapedFloats = reshapeInput(byteBuffer, inputShape);
+        int[][] output = new int[1][224];
+
+        Map<String, Object> inputs = new HashMap<>();
+        inputs.put("input_features", reshapedFloats);
+        Map<String, Object> outputs = new HashMap<>();
+        outputs.put("sequences", output);
+        _whisperInterpreter.runSignature(inputs, outputs, "serving_default");
+
+        String transcribed = tokensToString(output);
+        return transcribed;
+    }
+
+    @NonNull
+    private String tokensToString(int[][] output) {
+        StringBuilder sb = new StringBuilder();
+        for (int token : output[0]) {
+            if (token == _vocab.token_eot) {
+                break;
+            }
+            if (token != 50257 && token != 50362) {
+                String word = _vocab.id_to_token.get(token);
+                Log.i("tokenization", "token: " + token + " word " + word);
+                sb.append(word);
+            }
+        }
+        String transcribed = sb.toString();
+        return transcribed;
+    }
+
+    @NonNull
+    private float[][][] reshapeInput(float[] byteBuffer, int[] inputShape) {
+        float[][][] reshapedFloats = new float[inputShape[0]][inputShape[1]][inputShape[2]];
+        int index = 0;
+        for (int k = 0; k < inputShape[2]; k++) {
+            for (int j = 0; j < inputShape[1]; j++) {
+                for (int i = 0; i < inputShape[0]; i++) {
+                    reshapedFloats[i][j][k] = byteBuffer[index];
+                    index++;
+                }
+            }
+        }
+        return reshapedFloats;
     }
 
     private void draw(float[] floats) {
@@ -185,9 +189,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         return Optional.empty();
     }
 
-    private static MappedByteBuffer loadModelFile(AssetManager assets, String modelFilename)
+    private static MappedByteBuffer loadWhisperModel(AssetManager assets)
             throws IOException {
-        AssetFileDescriptor fileDescriptor = assets.openFd(modelFilename);
+        AssetFileDescriptor fileDescriptor = assets.openFd("whisper.tflite");
         FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
         FileChannel fileChannel = inputStream.getChannel();
         long startOffset = fileDescriptor.getStartOffset();
