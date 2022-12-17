@@ -90,6 +90,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 Pair<Optional<float[]>, Long> byteBuffer = RustLib.endRec();
 
                 if (byteBuffer.first.isPresent()) {
+                    draw(byteBuffer.first.get());
 //                    signalTxt.setText(new String(byteBuffer.second / 1000_000 + " ms"));
                     Pair<String, Long> transcribeAudio = transcribeAudio(byteBuffer.first.get());
                     String transcribed = transcribeAudio.first.trim() + " ";

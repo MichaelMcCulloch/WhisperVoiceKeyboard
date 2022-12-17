@@ -3,6 +3,8 @@ use std::{collections::HashMap, io::Read};
 use anyhow::anyhow;
 use ndk::asset::Asset;
 
+use crate::consts::{N_FFT, N_MEL_BINS};
+
 pub(crate) fn extract_filters_and_vocab(
     filters_vocab_gen_bin: &mut Asset,
 ) -> anyhow::Result<Vec<f32>> {
@@ -20,8 +22,8 @@ pub(crate) fn extract_filters_and_vocab(
 fn extract_filters(filters_vocab_gen_bin: &mut Asset) -> anyhow::Result<Vec<f32>> {
     let n_mel = read_i32(filters_vocab_gen_bin)?;
     let n_fft = read_i32(filters_vocab_gen_bin)?;
-    assert_eq!(80, n_mel);
-    assert_eq!(201, n_fft);
+    assert_eq!(N_MEL_BINS as i32, n_mel);
+    assert_eq!(N_FFT as i32, n_fft);
     let data = read_vec_f32(filters_vocab_gen_bin, (n_mel * n_fft) as usize)?;
     // Transpose the 2d array data
 

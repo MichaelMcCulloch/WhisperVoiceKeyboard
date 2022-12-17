@@ -32,7 +32,7 @@ pub(crate) fn dot_product(left: &[f32], right: &[f32]) -> f32 {
 }
 #[cfg(target_arch = "aarch64")]
 // #[cfg(target_arch = "aarch64")]
-/// I tried to beat the compiler. I lost. Badly
+/// I tried to beat the compiler. I lost. Badly. I suspect the compiler detects both the loop above and the looped function calls correctly and does a proper matrix multiplication
 /// Calculates the dot product of two slices of `f32` values.
 ///
 /// # Parameters
