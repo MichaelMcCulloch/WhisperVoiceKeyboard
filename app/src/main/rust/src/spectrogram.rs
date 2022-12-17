@@ -30,9 +30,10 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
     // Take the whisper filters lock, if it exists.
     match unsafe { WHISPER_FILTERS.take() } {
         Some(filters) => {
-            let npar_chunks = 1;
-            let par_chunk_size = f32le_audio.len() / npar_chunks;
-
+            let thread_pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(8)
+                .build()
+                .unwrap();
             let fft_process = get_fft_plan(FFT_LEN);
             let mut working_buffer: Vec<f32> = vec![0.0; FFT_LEN];
             let mut mel_spectrogram_columns = Vec::with_capacity(MEL_LEN * N_MEL_BINS);
@@ -46,11 +47,12 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                         working_buffer[j] = 0.0;
                     }
                 }
+                let mut log_mel_spectrogram = thread_pool.install(|| {
+                    let fft_complex_output = compute_fft(&working_buffer, &fft_process);
+                    let power_spectrum = compute_power(&fft_complex_output);
 
-                let fft_complex_output = compute_fft(&working_buffer, &fft_process);
-                let power_spectrum = compute_power(&fft_complex_output);
-                let mut log_mel_spectrogram =
-                    compute_mel(&power_spectrum, &filters, N_MEL_BINS, N_FFT);
+                    compute_mel(&power_spectrum, &filters, N_MEL_BINS, N_FFT)
+                });
                 append(&mut mel_spectrogram_columns, &mut log_mel_spectrogram);
                 //Reset the working buffer to all zeros.
                 working_buffer.copy_from_slice(&[0.0; FFT_LEN]);
@@ -58,14 +60,12 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
 
             // Replace the whisper filters lock.
             unsafe { WHISPER_FILTERS.replace(filters) };
-            // Return the mel spectrogram columns buffer.
 
             // Normalize the mel spectrogram columns buffer.
             normalize(&mut mel_spectrogram_columns);
+
+            // Return the mel spectrogram columns buffer.
             mel_spectrogram_columns
-                .iter()
-                .map(|f| *f as f32)
-                .collect::<Vec<_>>()
         }
 
         // If the whisper filter lock does not exist, throw a todo! error.

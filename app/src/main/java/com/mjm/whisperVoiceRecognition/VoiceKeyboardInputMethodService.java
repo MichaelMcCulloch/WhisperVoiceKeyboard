@@ -9,6 +9,7 @@ import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ToggleButton;
@@ -42,7 +43,13 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             _vocab = ExtractVocab.extractVocab(getAssets().open("filters_vocab_gen.bin"));
             MappedByteBuffer model = loadWhisperModel(getAssets());
             Log.i("TFLITE", "onCreateInputView: " + "Created tflitemodel");
-            _whisperInterpreter = new Interpreter(model);
+
+            Interpreter.Options options = new Interpreter.Options();
+
+            options.setUseXNNPACK(true);
+            options.setNumThreads(8);
+
+            _whisperInterpreter = new Interpreter(model, options);
 
 
         } catch (IOException e) {
@@ -65,6 +72,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
         Button cancelButton = inputView.findViewById(R.id.buttonCancel);
 
+//        TextView signalTxt = inputView.findViewById(R.id.textSignalTime);
+//        TextView inferenceTxt = inputView.findViewById(R.id.textInferenceTime);
+
 
         cancelButton.setOnClickListener(v -> {
             RustLib.abortRecording();
@@ -77,10 +87,15 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 RustLib.startRecording(getBottomMicrophone().get());
 
             } else {
-                Optional<float[]> byteBuffer = RustLib.endRec();
-                if (byteBuffer.isPresent()) {
-                    String transcribed = transcribAudio(byteBuffer.get()).trim() + " ";
+                Pair<Optional<float[]>, Long> byteBuffer = RustLib.endRec();
+
+                if (byteBuffer.first.isPresent()) {
+//                    signalTxt.setText(new String(byteBuffer.second / 1000_000 + " ms"));
+                    Pair<String, Long> transcribeAudio = transcribeAudio(byteBuffer.first.get());
+                    String transcribed = transcribeAudio.first.trim() + " ";
+
                     getCurrentInputConnection().commitText(transcribed, transcribed.length());
+//                    inferenceTxt.setText(new String(transcribeAudio.second / 1000_000 + " ms"));
 
                 }
             }
@@ -90,7 +105,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     }
 
     @NonNull
-    private String transcribAudio(float[] byteBuffer) {
+    private Pair<String, Long> transcribeAudio(float[] byteBuffer) {
         int[] inputShape = {1, 80, 3000};
 
         float[][][] reshapedFloats = reshapeInput(byteBuffer, inputShape);
@@ -100,10 +115,15 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         inputs.put("input_features", reshapedFloats);
         Map<String, Object> outputs = new HashMap<>();
         outputs.put("sequences", output);
+
+        long alpha = System.nanoTime();
         _whisperInterpreter.runSignature(inputs, outputs, "serving_default");
+        long beta = System.nanoTime();
+        Log.i("RustLib", "runSignature: took" + (beta - alpha) + "nanos");
+
 
         String transcribed = tokensToString(output);
-        return transcribed;
+        return new Pair<>(transcribed, beta - alpha);
     }
 
     @NonNull
