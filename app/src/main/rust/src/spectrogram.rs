@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    lina::{dot_product, fft},
-    statics::WHISPER_FILTERS,
-};
+use crate::{lina::dot_product, statics::WHISPER_FILTERS};
 use nalgebra::Complex;
 use ndk_sys::exit;
 use rayon::prelude::*;
