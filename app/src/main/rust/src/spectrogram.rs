@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{lina::dot_product, statics::WHISPER_FILTERS};
+use crate::{lina::dot_product, mel::compute_mel, statics::WHISPER_FILTERS};
 use nalgebra::Complex;
 use ndk_sys::exit;
 use rayon::prelude::*;
@@ -58,13 +58,8 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                 working_buffer.copy_from_slice(&[0.0; FFT_LEN]);
             }
 
-            let log_mel_spectrogram = compute_mel(
-                &power_spectrum_columns,
-                &filters,
-                MEL_LEN,
-                N_MEL_BINS,
-                N_FFT,
-            );
+            let log_mel_spectrogram =
+                compute_mel(&power_spectrum_columns, &filters, MEL_LEN, N_MEL_BINS);
 
             unsafe { WHISPER_FILTERS.replace(filters) };
 
@@ -128,25 +123,6 @@ fn compute_power(fft_work_buffer: &[Complex32], n_fft: usize) -> Vec<f32> {
     }
 
     power_spectrum[0..n_fft].to_vec()
-}
-
-/// Compute the log mel spectrogram from a power spectrum buffer and filters.
-fn compute_mel(
-    power_spectrum: &[Vec<f32>],
-    filters: &[Vec<f32>],
-    n_mel_frames: usize,
-    mel_bins: usize,
-    n_fft: usize,
-) -> Vec<Vec<f32>> {
-    let mut spectrogram = vec![vec![0.0; mel_bins]; n_mel_frames];
-    for i in 0..n_mel_frames {
-        for j in 0..mel_bins {
-            for k in 0..n_fft {
-                spectrogram[i][j] += power_spectrum[i][k] * filters[j][k];
-            }
-        }
-    }
-    return spectrogram;
 }
 
 /// Append the log mel spectrogram to the mel spectrogram columns buffer.
