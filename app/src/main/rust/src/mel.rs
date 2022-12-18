@@ -255,280 +255,280 @@ pub(crate) fn compute_mel(
             for j in 0..mel_bins {
                 flt[0..N_FFT].copy_from_slice(&filters[j]);
 
-                let flt_16_1 = vld1q_f32_x4(flt[0..16].as_ptr());
-                let flt_16_2 = vld1q_f32_x4(flt[16..32].as_ptr());
-                let flt_16_3 = vld1q_f32_x4(flt[32..48].as_ptr());
-                let flt_16_4 = vld1q_f32_x4(flt[48..64].as_ptr());
-                let flt_16_5 = vld1q_f32_x4(flt[64..80].as_ptr());
-                let flt_16_6 = vld1q_f32_x4(flt[80..96].as_ptr());
-                let flt_16_7 = vld1q_f32_x4(flt[96..112].as_ptr());
-                let flt_16_8 = vld1q_f32_x4(flt[112..128].as_ptr());
-                let flt_16_9 = vld1q_f32_x4(flt[128..144].as_ptr());
-                let flt_16_10 = vld1q_f32_x4(flt[144..160].as_ptr());
-                let flt_16_11 = vld1q_f32_x4(flt[160..176].as_ptr());
-                let flt_16_12 = vld1q_f32_x4(flt[176..192].as_ptr());
-                let flt_16_13 = vld1q_f32_x4(flt[192..208].as_ptr());
+                let flt_1 = vld1q_f32_x4(flt[0..16].as_ptr());
+                let flt_2 = vld1q_f32_x4(flt[16..32].as_ptr());
+                let flt_3 = vld1q_f32_x4(flt[32..48].as_ptr());
+                let flt_4 = vld1q_f32_x4(flt[48..64].as_ptr());
+                let flt_5 = vld1q_f32_x4(flt[64..80].as_ptr());
+                let flt_6 = vld1q_f32_x4(flt[80..96].as_ptr());
+                let flt_7 = vld1q_f32_x4(flt[96..112].as_ptr());
+                let flt_8 = vld1q_f32_x4(flt[112..128].as_ptr());
+                let flt_9 = vld1q_f32_x4(flt[128..144].as_ptr());
+                let flt_10 = vld1q_f32_x4(flt[144..160].as_ptr());
+                let flt_11 = vld1q_f32_x4(flt[160..176].as_ptr());
+                let flt_12 = vld1q_f32_x4(flt[176..192].as_ptr());
+                let flt_13 = vld1q_f32_x4(flt[192..208].as_ptr());
 
-                let res_16_1_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.0, flt_16_1.0);
-                let res_16_1_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.1, flt_16_1.1);
-                let res_16_1_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.2, flt_16_1.2);
-                let res_16_1_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.3, flt_16_1.3);
-                let res_16_2_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.0, flt_16_2.0);
-                let res_16_2_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.1, flt_16_2.1);
-                let res_16_2_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.2, flt_16_2.2);
-                let res_16_2_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.3, flt_16_2.3);
-                let res_16_3_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.0, flt_16_3.0);
-                let res_16_3_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.1, flt_16_3.1);
-                let res_16_3_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.2, flt_16_3.2);
-                let res_16_3_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.3, flt_16_3.3);
-                let res_16_4_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.0, flt_16_4.0);
-                let res_16_4_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.1, flt_16_4.1);
-                let res_16_4_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.2, flt_16_4.2);
-                let res_16_4_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.3, flt_16_4.3);
-                let res_16_5_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.0, flt_16_5.0);
-                let res_16_5_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.1, flt_16_5.1);
-                let res_16_5_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.2, flt_16_5.2);
-                let res_16_5_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.3, flt_16_5.3);
-                let res_16_6_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.0, flt_16_6.0);
-                let res_16_6_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.1, flt_16_6.1);
-                let res_16_6_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.2, flt_16_6.2);
-                let res_16_6_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.3, flt_16_6.3);
-                let res_16_7_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.0, flt_16_7.0);
-                let res_16_7_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.1, flt_16_7.1);
-                let res_16_7_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.2, flt_16_7.2);
-                let res_16_7_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.3, flt_16_7.3);
-                let res_16_8_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.0, flt_16_8.0);
-                let res_16_8_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.1, flt_16_8.1);
-                let res_16_8_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.2, flt_16_8.2);
-                let res_16_8_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.3, flt_16_8.3);
-                let res_16_9_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.0, flt_16_9.0);
-                let res_16_9_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.1, flt_16_9.1);
-                let res_16_9_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.2, flt_16_9.2);
-                let res_16_9_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.3, flt_16_9.3);
-                let res_16_10_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.0, flt_16_10.0);
-                let res_16_10_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.1, flt_16_10.1);
-                let res_16_10_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.2, flt_16_10.2);
-                let res_16_10_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.3, flt_16_10.3);
-                let res_16_11_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.0, flt_16_11.0);
-                let res_16_11_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.1, flt_16_11.1);
-                let res_16_11_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.2, flt_16_11.2);
-                let res_16_11_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.3, flt_16_11.3);
-                let res_16_12_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.0, flt_16_12.0);
-                let res_16_12_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.1, flt_16_12.1);
-                let res_16_12_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.2, flt_16_12.2);
-                let res_16_12_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.3, flt_16_12.3);
-                let res_16_13_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.0, flt_16_13.0);
-                let res_16_13_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.1, flt_16_13.1);
-                let res_16_13_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.2, flt_16_13.2);
-                let res_16_13_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.3, flt_16_13.3);
-                spectrogram[i][j] = vgetq_lane_f32(res_16_1_1, 0)
-                    + vgetq_lane_f32(res_16_1_1, 1)
-                    + vgetq_lane_f32(res_16_1_1, 2)
-                    + vgetq_lane_f32(res_16_1_1, 3)
-                    + vgetq_lane_f32(res_16_1_2, 0)
-                    + vgetq_lane_f32(res_16_1_2, 1)
-                    + vgetq_lane_f32(res_16_1_2, 2)
-                    + vgetq_lane_f32(res_16_1_2, 3)
-                    + vgetq_lane_f32(res_16_1_3, 0)
-                    + vgetq_lane_f32(res_16_1_3, 1)
-                    + vgetq_lane_f32(res_16_1_3, 2)
-                    + vgetq_lane_f32(res_16_1_3, 3)
-                    + vgetq_lane_f32(res_16_1_4, 0)
-                    + vgetq_lane_f32(res_16_1_4, 1)
-                    + vgetq_lane_f32(res_16_1_4, 2)
-                    + vgetq_lane_f32(res_16_1_4, 3)
-                    + vgetq_lane_f32(res_16_2_1, 0)
-                    + vgetq_lane_f32(res_16_2_1, 1)
-                    + vgetq_lane_f32(res_16_2_1, 2)
-                    + vgetq_lane_f32(res_16_2_1, 3)
-                    + vgetq_lane_f32(res_16_2_2, 0)
-                    + vgetq_lane_f32(res_16_2_2, 1)
-                    + vgetq_lane_f32(res_16_2_2, 2)
-                    + vgetq_lane_f32(res_16_2_2, 3)
-                    + vgetq_lane_f32(res_16_2_3, 0)
-                    + vgetq_lane_f32(res_16_2_3, 1)
-                    + vgetq_lane_f32(res_16_2_3, 2)
-                    + vgetq_lane_f32(res_16_2_3, 3)
-                    + vgetq_lane_f32(res_16_2_4, 0)
-                    + vgetq_lane_f32(res_16_2_4, 1)
-                    + vgetq_lane_f32(res_16_2_4, 2)
-                    + vgetq_lane_f32(res_16_2_4, 3)
-                    + vgetq_lane_f32(res_16_3_1, 0)
-                    + vgetq_lane_f32(res_16_3_1, 1)
-                    + vgetq_lane_f32(res_16_3_1, 2)
-                    + vgetq_lane_f32(res_16_3_1, 3)
-                    + vgetq_lane_f32(res_16_3_2, 0)
-                    + vgetq_lane_f32(res_16_3_2, 1)
-                    + vgetq_lane_f32(res_16_3_2, 2)
-                    + vgetq_lane_f32(res_16_3_2, 3)
-                    + vgetq_lane_f32(res_16_3_3, 0)
-                    + vgetq_lane_f32(res_16_3_3, 1)
-                    + vgetq_lane_f32(res_16_3_3, 2)
-                    + vgetq_lane_f32(res_16_3_3, 3)
-                    + vgetq_lane_f32(res_16_3_4, 0)
-                    + vgetq_lane_f32(res_16_3_4, 1)
-                    + vgetq_lane_f32(res_16_3_4, 2)
-                    + vgetq_lane_f32(res_16_3_4, 3)
-                    + vgetq_lane_f32(res_16_4_1, 0)
-                    + vgetq_lane_f32(res_16_4_1, 1)
-                    + vgetq_lane_f32(res_16_4_1, 2)
-                    + vgetq_lane_f32(res_16_4_1, 3)
-                    + vgetq_lane_f32(res_16_4_2, 0)
-                    + vgetq_lane_f32(res_16_4_2, 1)
-                    + vgetq_lane_f32(res_16_4_2, 2)
-                    + vgetq_lane_f32(res_16_4_2, 3)
-                    + vgetq_lane_f32(res_16_4_3, 0)
-                    + vgetq_lane_f32(res_16_4_3, 1)
-                    + vgetq_lane_f32(res_16_4_3, 2)
-                    + vgetq_lane_f32(res_16_4_3, 3)
-                    + vgetq_lane_f32(res_16_4_4, 0)
-                    + vgetq_lane_f32(res_16_4_4, 1)
-                    + vgetq_lane_f32(res_16_4_4, 2)
-                    + vgetq_lane_f32(res_16_4_4, 3)
-                    + vgetq_lane_f32(res_16_5_1, 0)
-                    + vgetq_lane_f32(res_16_5_1, 1)
-                    + vgetq_lane_f32(res_16_5_1, 2)
-                    + vgetq_lane_f32(res_16_5_1, 3)
-                    + vgetq_lane_f32(res_16_5_2, 0)
-                    + vgetq_lane_f32(res_16_5_2, 1)
-                    + vgetq_lane_f32(res_16_5_2, 2)
-                    + vgetq_lane_f32(res_16_5_2, 3)
-                    + vgetq_lane_f32(res_16_5_3, 0)
-                    + vgetq_lane_f32(res_16_5_3, 1)
-                    + vgetq_lane_f32(res_16_5_3, 2)
-                    + vgetq_lane_f32(res_16_5_3, 3)
-                    + vgetq_lane_f32(res_16_5_4, 0)
-                    + vgetq_lane_f32(res_16_5_4, 1)
-                    + vgetq_lane_f32(res_16_5_4, 2)
-                    + vgetq_lane_f32(res_16_5_4, 3)
-                    + vgetq_lane_f32(res_16_6_1, 0)
-                    + vgetq_lane_f32(res_16_6_1, 1)
-                    + vgetq_lane_f32(res_16_6_1, 2)
-                    + vgetq_lane_f32(res_16_6_1, 3)
-                    + vgetq_lane_f32(res_16_6_2, 0)
-                    + vgetq_lane_f32(res_16_6_2, 1)
-                    + vgetq_lane_f32(res_16_6_2, 2)
-                    + vgetq_lane_f32(res_16_6_2, 3)
-                    + vgetq_lane_f32(res_16_6_3, 0)
-                    + vgetq_lane_f32(res_16_6_3, 1)
-                    + vgetq_lane_f32(res_16_6_3, 2)
-                    + vgetq_lane_f32(res_16_6_3, 3)
-                    + vgetq_lane_f32(res_16_6_4, 0)
-                    + vgetq_lane_f32(res_16_6_4, 1)
-                    + vgetq_lane_f32(res_16_6_4, 2)
-                    + vgetq_lane_f32(res_16_6_4, 3)
-                    + vgetq_lane_f32(res_16_7_1, 0)
-                    + vgetq_lane_f32(res_16_7_1, 1)
-                    + vgetq_lane_f32(res_16_7_1, 2)
-                    + vgetq_lane_f32(res_16_7_1, 3)
-                    + vgetq_lane_f32(res_16_7_2, 0)
-                    + vgetq_lane_f32(res_16_7_2, 1)
-                    + vgetq_lane_f32(res_16_7_2, 2)
-                    + vgetq_lane_f32(res_16_7_2, 3)
-                    + vgetq_lane_f32(res_16_7_3, 0)
-                    + vgetq_lane_f32(res_16_7_3, 1)
-                    + vgetq_lane_f32(res_16_7_3, 2)
-                    + vgetq_lane_f32(res_16_7_3, 3)
-                    + vgetq_lane_f32(res_16_7_4, 0)
-                    + vgetq_lane_f32(res_16_7_4, 1)
-                    + vgetq_lane_f32(res_16_7_4, 2)
-                    + vgetq_lane_f32(res_16_7_4, 3)
-                    + vgetq_lane_f32(res_16_8_1, 0)
-                    + vgetq_lane_f32(res_16_8_1, 1)
-                    + vgetq_lane_f32(res_16_8_1, 2)
-                    + vgetq_lane_f32(res_16_8_1, 3)
-                    + vgetq_lane_f32(res_16_8_2, 0)
-                    + vgetq_lane_f32(res_16_8_2, 1)
-                    + vgetq_lane_f32(res_16_8_2, 2)
-                    + vgetq_lane_f32(res_16_8_2, 3)
-                    + vgetq_lane_f32(res_16_8_3, 0)
-                    + vgetq_lane_f32(res_16_8_3, 1)
-                    + vgetq_lane_f32(res_16_8_3, 2)
-                    + vgetq_lane_f32(res_16_8_3, 3)
-                    + vgetq_lane_f32(res_16_8_4, 0)
-                    + vgetq_lane_f32(res_16_8_4, 1)
-                    + vgetq_lane_f32(res_16_8_4, 2)
-                    + vgetq_lane_f32(res_16_8_4, 3)
-                    + vgetq_lane_f32(res_16_9_1, 0)
-                    + vgetq_lane_f32(res_16_9_1, 1)
-                    + vgetq_lane_f32(res_16_9_1, 2)
-                    + vgetq_lane_f32(res_16_9_1, 3)
-                    + vgetq_lane_f32(res_16_9_2, 0)
-                    + vgetq_lane_f32(res_16_9_2, 1)
-                    + vgetq_lane_f32(res_16_9_2, 2)
-                    + vgetq_lane_f32(res_16_9_2, 3)
-                    + vgetq_lane_f32(res_16_9_3, 0)
-                    + vgetq_lane_f32(res_16_9_3, 1)
-                    + vgetq_lane_f32(res_16_9_3, 2)
-                    + vgetq_lane_f32(res_16_9_3, 3)
-                    + vgetq_lane_f32(res_16_9_4, 0)
-                    + vgetq_lane_f32(res_16_9_4, 1)
-                    + vgetq_lane_f32(res_16_9_4, 2)
-                    + vgetq_lane_f32(res_16_9_4, 3)
-                    + vgetq_lane_f32(res_16_10_1, 0)
-                    + vgetq_lane_f32(res_16_10_1, 1)
-                    + vgetq_lane_f32(res_16_10_1, 2)
-                    + vgetq_lane_f32(res_16_10_1, 3)
-                    + vgetq_lane_f32(res_16_10_2, 0)
-                    + vgetq_lane_f32(res_16_10_2, 1)
-                    + vgetq_lane_f32(res_16_10_2, 2)
-                    + vgetq_lane_f32(res_16_10_2, 3)
-                    + vgetq_lane_f32(res_16_10_3, 0)
-                    + vgetq_lane_f32(res_16_10_3, 1)
-                    + vgetq_lane_f32(res_16_10_3, 2)
-                    + vgetq_lane_f32(res_16_10_3, 3)
-                    + vgetq_lane_f32(res_16_10_4, 0)
-                    + vgetq_lane_f32(res_16_10_4, 1)
-                    + vgetq_lane_f32(res_16_10_4, 2)
-                    + vgetq_lane_f32(res_16_10_4, 3)
-                    + vgetq_lane_f32(res_16_11_1, 0)
-                    + vgetq_lane_f32(res_16_11_1, 1)
-                    + vgetq_lane_f32(res_16_11_1, 2)
-                    + vgetq_lane_f32(res_16_11_1, 3)
-                    + vgetq_lane_f32(res_16_11_2, 0)
-                    + vgetq_lane_f32(res_16_11_2, 1)
-                    + vgetq_lane_f32(res_16_11_2, 2)
-                    + vgetq_lane_f32(res_16_11_2, 3)
-                    + vgetq_lane_f32(res_16_11_3, 0)
-                    + vgetq_lane_f32(res_16_11_3, 1)
-                    + vgetq_lane_f32(res_16_11_3, 2)
-                    + vgetq_lane_f32(res_16_11_3, 3)
-                    + vgetq_lane_f32(res_16_11_4, 0)
-                    + vgetq_lane_f32(res_16_11_4, 1)
-                    + vgetq_lane_f32(res_16_11_4, 2)
-                    + vgetq_lane_f32(res_16_11_4, 3)
-                    + vgetq_lane_f32(res_16_12_1, 0)
-                    + vgetq_lane_f32(res_16_12_1, 1)
-                    + vgetq_lane_f32(res_16_12_1, 2)
-                    + vgetq_lane_f32(res_16_12_1, 3)
-                    + vgetq_lane_f32(res_16_12_2, 0)
-                    + vgetq_lane_f32(res_16_12_2, 1)
-                    + vgetq_lane_f32(res_16_12_2, 2)
-                    + vgetq_lane_f32(res_16_12_2, 3)
-                    + vgetq_lane_f32(res_16_12_3, 0)
-                    + vgetq_lane_f32(res_16_12_3, 1)
-                    + vgetq_lane_f32(res_16_12_3, 2)
-                    + vgetq_lane_f32(res_16_12_3, 3)
-                    + vgetq_lane_f32(res_16_12_4, 0)
-                    + vgetq_lane_f32(res_16_12_4, 1)
-                    + vgetq_lane_f32(res_16_12_4, 2)
-                    + vgetq_lane_f32(res_16_12_4, 3)
-                    + vgetq_lane_f32(res_16_13_1, 0)
-                    + vgetq_lane_f32(res_16_13_1, 1)
-                    + vgetq_lane_f32(res_16_13_1, 2)
-                    + vgetq_lane_f32(res_16_13_1, 3)
-                    + vgetq_lane_f32(res_16_13_2, 0)
-                    + vgetq_lane_f32(res_16_13_2, 1)
-                    + vgetq_lane_f32(res_16_13_2, 2)
-                    + vgetq_lane_f32(res_16_13_2, 3)
-                    + vgetq_lane_f32(res_16_13_3, 0)
-                    + vgetq_lane_f32(res_16_13_3, 1)
-                    + vgetq_lane_f32(res_16_13_3, 2)
-                    + vgetq_lane_f32(res_16_13_3, 3)
-                    + vgetq_lane_f32(res_16_13_4, 0)
-                    + vgetq_lane_f32(res_16_13_4, 1)
-                    + vgetq_lane_f32(res_16_13_4, 2)
-                    + vgetq_lane_f32(res_16_13_4, 3);
+                let res_1_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.0, flt_1.0);
+                let res_1_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.1, flt_1.1);
+                let res_1_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.2, flt_1.2);
+                let res_1_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_1.3, flt_1.3);
+                let res_2_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.0, flt_2.0);
+                let res_2_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.1, flt_2.1);
+                let res_2_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.2, flt_2.2);
+                let res_2_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_2.3, flt_2.3);
+                let res_3_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.0, flt_3.0);
+                let res_3_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.1, flt_3.1);
+                let res_3_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.2, flt_3.2);
+                let res_3_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_3.3, flt_3.3);
+                let res_4_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.0, flt_4.0);
+                let res_4_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.1, flt_4.1);
+                let res_4_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.2, flt_4.2);
+                let res_4_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_4.3, flt_4.3);
+                let res_5_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.0, flt_5.0);
+                let res_5_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.1, flt_5.1);
+                let res_5_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.2, flt_5.2);
+                let res_5_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_5.3, flt_5.3);
+                let res_6_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.0, flt_6.0);
+                let res_6_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.1, flt_6.1);
+                let res_6_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.2, flt_6.2);
+                let res_6_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_6.3, flt_6.3);
+                let res_7_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.0, flt_7.0);
+                let res_7_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.1, flt_7.1);
+                let res_7_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.2, flt_7.2);
+                let res_7_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_7.3, flt_7.3);
+                let res_8_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.0, flt_8.0);
+                let res_8_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.1, flt_8.1);
+                let res_8_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.2, flt_8.2);
+                let res_8_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_8.3, flt_8.3);
+                let res_9_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.0, flt_9.0);
+                let res_9_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.1, flt_9.1);
+                let res_9_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.2, flt_9.2);
+                let res_9_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_9.3, flt_9.3);
+                let res_10_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.0, flt_10.0);
+                let res_10_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.1, flt_10.1);
+                let res_10_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.2, flt_10.2);
+                let res_10_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_10.3, flt_10.3);
+                let res_11_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.0, flt_11.0);
+                let res_11_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.1, flt_11.1);
+                let res_11_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.2, flt_11.2);
+                let res_11_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_11.3, flt_11.3);
+                let res_12_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.0, flt_12.0);
+                let res_12_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.1, flt_12.1);
+                let res_12_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.2, flt_12.2);
+                let res_12_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_12.3, flt_12.3);
+                let res_13_1 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.0, flt_13.0);
+                let res_13_2 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.1, flt_13.1);
+                let res_13_3 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.2, flt_13.2);
+                let res_13_4 = vfmaq_f32(vdupq_n_f32(0.0f32), pwr_13.3, flt_13.3);
+                spectrogram[i][j] = vgetq_lane_f32(res_1_1, 0)
+                    + vgetq_lane_f32(res_1_1, 1)
+                    + vgetq_lane_f32(res_1_1, 2)
+                    + vgetq_lane_f32(res_1_1, 3)
+                    + vgetq_lane_f32(res_1_2, 0)
+                    + vgetq_lane_f32(res_1_2, 1)
+                    + vgetq_lane_f32(res_1_2, 2)
+                    + vgetq_lane_f32(res_1_2, 3)
+                    + vgetq_lane_f32(res_1_3, 0)
+                    + vgetq_lane_f32(res_1_3, 1)
+                    + vgetq_lane_f32(res_1_3, 2)
+                    + vgetq_lane_f32(res_1_3, 3)
+                    + vgetq_lane_f32(res_1_4, 0)
+                    + vgetq_lane_f32(res_1_4, 1)
+                    + vgetq_lane_f32(res_1_4, 2)
+                    + vgetq_lane_f32(res_1_4, 3)
+                    + vgetq_lane_f32(res_2_1, 0)
+                    + vgetq_lane_f32(res_2_1, 1)
+                    + vgetq_lane_f32(res_2_1, 2)
+                    + vgetq_lane_f32(res_2_1, 3)
+                    + vgetq_lane_f32(res_2_2, 0)
+                    + vgetq_lane_f32(res_2_2, 1)
+                    + vgetq_lane_f32(res_2_2, 2)
+                    + vgetq_lane_f32(res_2_2, 3)
+                    + vgetq_lane_f32(res_2_3, 0)
+                    + vgetq_lane_f32(res_2_3, 1)
+                    + vgetq_lane_f32(res_2_3, 2)
+                    + vgetq_lane_f32(res_2_3, 3)
+                    + vgetq_lane_f32(res_2_4, 0)
+                    + vgetq_lane_f32(res_2_4, 1)
+                    + vgetq_lane_f32(res_2_4, 2)
+                    + vgetq_lane_f32(res_2_4, 3)
+                    + vgetq_lane_f32(res_3_1, 0)
+                    + vgetq_lane_f32(res_3_1, 1)
+                    + vgetq_lane_f32(res_3_1, 2)
+                    + vgetq_lane_f32(res_3_1, 3)
+                    + vgetq_lane_f32(res_3_2, 0)
+                    + vgetq_lane_f32(res_3_2, 1)
+                    + vgetq_lane_f32(res_3_2, 2)
+                    + vgetq_lane_f32(res_3_2, 3)
+                    + vgetq_lane_f32(res_3_3, 0)
+                    + vgetq_lane_f32(res_3_3, 1)
+                    + vgetq_lane_f32(res_3_3, 2)
+                    + vgetq_lane_f32(res_3_3, 3)
+                    + vgetq_lane_f32(res_3_4, 0)
+                    + vgetq_lane_f32(res_3_4, 1)
+                    + vgetq_lane_f32(res_3_4, 2)
+                    + vgetq_lane_f32(res_3_4, 3)
+                    + vgetq_lane_f32(res_4_1, 0)
+                    + vgetq_lane_f32(res_4_1, 1)
+                    + vgetq_lane_f32(res_4_1, 2)
+                    + vgetq_lane_f32(res_4_1, 3)
+                    + vgetq_lane_f32(res_4_2, 0)
+                    + vgetq_lane_f32(res_4_2, 1)
+                    + vgetq_lane_f32(res_4_2, 2)
+                    + vgetq_lane_f32(res_4_2, 3)
+                    + vgetq_lane_f32(res_4_3, 0)
+                    + vgetq_lane_f32(res_4_3, 1)
+                    + vgetq_lane_f32(res_4_3, 2)
+                    + vgetq_lane_f32(res_4_3, 3)
+                    + vgetq_lane_f32(res_4_4, 0)
+                    + vgetq_lane_f32(res_4_4, 1)
+                    + vgetq_lane_f32(res_4_4, 2)
+                    + vgetq_lane_f32(res_4_4, 3)
+                    + vgetq_lane_f32(res_5_1, 0)
+                    + vgetq_lane_f32(res_5_1, 1)
+                    + vgetq_lane_f32(res_5_1, 2)
+                    + vgetq_lane_f32(res_5_1, 3)
+                    + vgetq_lane_f32(res_5_2, 0)
+                    + vgetq_lane_f32(res_5_2, 1)
+                    + vgetq_lane_f32(res_5_2, 2)
+                    + vgetq_lane_f32(res_5_2, 3)
+                    + vgetq_lane_f32(res_5_3, 0)
+                    + vgetq_lane_f32(res_5_3, 1)
+                    + vgetq_lane_f32(res_5_3, 2)
+                    + vgetq_lane_f32(res_5_3, 3)
+                    + vgetq_lane_f32(res_5_4, 0)
+                    + vgetq_lane_f32(res_5_4, 1)
+                    + vgetq_lane_f32(res_5_4, 2)
+                    + vgetq_lane_f32(res_5_4, 3)
+                    + vgetq_lane_f32(res_6_1, 0)
+                    + vgetq_lane_f32(res_6_1, 1)
+                    + vgetq_lane_f32(res_6_1, 2)
+                    + vgetq_lane_f32(res_6_1, 3)
+                    + vgetq_lane_f32(res_6_2, 0)
+                    + vgetq_lane_f32(res_6_2, 1)
+                    + vgetq_lane_f32(res_6_2, 2)
+                    + vgetq_lane_f32(res_6_2, 3)
+                    + vgetq_lane_f32(res_6_3, 0)
+                    + vgetq_lane_f32(res_6_3, 1)
+                    + vgetq_lane_f32(res_6_3, 2)
+                    + vgetq_lane_f32(res_6_3, 3)
+                    + vgetq_lane_f32(res_6_4, 0)
+                    + vgetq_lane_f32(res_6_4, 1)
+                    + vgetq_lane_f32(res_6_4, 2)
+                    + vgetq_lane_f32(res_6_4, 3)
+                    + vgetq_lane_f32(res_7_1, 0)
+                    + vgetq_lane_f32(res_7_1, 1)
+                    + vgetq_lane_f32(res_7_1, 2)
+                    + vgetq_lane_f32(res_7_1, 3)
+                    + vgetq_lane_f32(res_7_2, 0)
+                    + vgetq_lane_f32(res_7_2, 1)
+                    + vgetq_lane_f32(res_7_2, 2)
+                    + vgetq_lane_f32(res_7_2, 3)
+                    + vgetq_lane_f32(res_7_3, 0)
+                    + vgetq_lane_f32(res_7_3, 1)
+                    + vgetq_lane_f32(res_7_3, 2)
+                    + vgetq_lane_f32(res_7_3, 3)
+                    + vgetq_lane_f32(res_7_4, 0)
+                    + vgetq_lane_f32(res_7_4, 1)
+                    + vgetq_lane_f32(res_7_4, 2)
+                    + vgetq_lane_f32(res_7_4, 3)
+                    + vgetq_lane_f32(res_8_1, 0)
+                    + vgetq_lane_f32(res_8_1, 1)
+                    + vgetq_lane_f32(res_8_1, 2)
+                    + vgetq_lane_f32(res_8_1, 3)
+                    + vgetq_lane_f32(res_8_2, 0)
+                    + vgetq_lane_f32(res_8_2, 1)
+                    + vgetq_lane_f32(res_8_2, 2)
+                    + vgetq_lane_f32(res_8_2, 3)
+                    + vgetq_lane_f32(res_8_3, 0)
+                    + vgetq_lane_f32(res_8_3, 1)
+                    + vgetq_lane_f32(res_8_3, 2)
+                    + vgetq_lane_f32(res_8_3, 3)
+                    + vgetq_lane_f32(res_8_4, 0)
+                    + vgetq_lane_f32(res_8_4, 1)
+                    + vgetq_lane_f32(res_8_4, 2)
+                    + vgetq_lane_f32(res_8_4, 3)
+                    + vgetq_lane_f32(res_9_1, 0)
+                    + vgetq_lane_f32(res_9_1, 1)
+                    + vgetq_lane_f32(res_9_1, 2)
+                    + vgetq_lane_f32(res_9_1, 3)
+                    + vgetq_lane_f32(res_9_2, 0)
+                    + vgetq_lane_f32(res_9_2, 1)
+                    + vgetq_lane_f32(res_9_2, 2)
+                    + vgetq_lane_f32(res_9_2, 3)
+                    + vgetq_lane_f32(res_9_3, 0)
+                    + vgetq_lane_f32(res_9_3, 1)
+                    + vgetq_lane_f32(res_9_3, 2)
+                    + vgetq_lane_f32(res_9_3, 3)
+                    + vgetq_lane_f32(res_9_4, 0)
+                    + vgetq_lane_f32(res_9_4, 1)
+                    + vgetq_lane_f32(res_9_4, 2)
+                    + vgetq_lane_f32(res_9_4, 3)
+                    + vgetq_lane_f32(res_10_1, 0)
+                    + vgetq_lane_f32(res_10_1, 1)
+                    + vgetq_lane_f32(res_10_1, 2)
+                    + vgetq_lane_f32(res_10_1, 3)
+                    + vgetq_lane_f32(res_10_2, 0)
+                    + vgetq_lane_f32(res_10_2, 1)
+                    + vgetq_lane_f32(res_10_2, 2)
+                    + vgetq_lane_f32(res_10_2, 3)
+                    + vgetq_lane_f32(res_10_3, 0)
+                    + vgetq_lane_f32(res_10_3, 1)
+                    + vgetq_lane_f32(res_10_3, 2)
+                    + vgetq_lane_f32(res_10_3, 3)
+                    + vgetq_lane_f32(res_10_4, 0)
+                    + vgetq_lane_f32(res_10_4, 1)
+                    + vgetq_lane_f32(res_10_4, 2)
+                    + vgetq_lane_f32(res_10_4, 3)
+                    + vgetq_lane_f32(res_11_1, 0)
+                    + vgetq_lane_f32(res_11_1, 1)
+                    + vgetq_lane_f32(res_11_1, 2)
+                    + vgetq_lane_f32(res_11_1, 3)
+                    + vgetq_lane_f32(res_11_2, 0)
+                    + vgetq_lane_f32(res_11_2, 1)
+                    + vgetq_lane_f32(res_11_2, 2)
+                    + vgetq_lane_f32(res_11_2, 3)
+                    + vgetq_lane_f32(res_11_3, 0)
+                    + vgetq_lane_f32(res_11_3, 1)
+                    + vgetq_lane_f32(res_11_3, 2)
+                    + vgetq_lane_f32(res_11_3, 3)
+                    + vgetq_lane_f32(res_11_4, 0)
+                    + vgetq_lane_f32(res_11_4, 1)
+                    + vgetq_lane_f32(res_11_4, 2)
+                    + vgetq_lane_f32(res_11_4, 3)
+                    + vgetq_lane_f32(res_12_1, 0)
+                    + vgetq_lane_f32(res_12_1, 1)
+                    + vgetq_lane_f32(res_12_1, 2)
+                    + vgetq_lane_f32(res_12_1, 3)
+                    + vgetq_lane_f32(res_12_2, 0)
+                    + vgetq_lane_f32(res_12_2, 1)
+                    + vgetq_lane_f32(res_12_2, 2)
+                    + vgetq_lane_f32(res_12_2, 3)
+                    + vgetq_lane_f32(res_12_3, 0)
+                    + vgetq_lane_f32(res_12_3, 1)
+                    + vgetq_lane_f32(res_12_3, 2)
+                    + vgetq_lane_f32(res_12_3, 3)
+                    + vgetq_lane_f32(res_12_4, 0)
+                    + vgetq_lane_f32(res_12_4, 1)
+                    + vgetq_lane_f32(res_12_4, 2)
+                    + vgetq_lane_f32(res_12_4, 3)
+                    + vgetq_lane_f32(res_13_1, 0)
+                    + vgetq_lane_f32(res_13_1, 1)
+                    + vgetq_lane_f32(res_13_1, 2)
+                    + vgetq_lane_f32(res_13_1, 3)
+                    + vgetq_lane_f32(res_13_2, 0)
+                    + vgetq_lane_f32(res_13_2, 1)
+                    + vgetq_lane_f32(res_13_2, 2)
+                    + vgetq_lane_f32(res_13_2, 3)
+                    + vgetq_lane_f32(res_13_3, 0)
+                    + vgetq_lane_f32(res_13_3, 1)
+                    + vgetq_lane_f32(res_13_3, 2)
+                    + vgetq_lane_f32(res_13_3, 3)
+                    + vgetq_lane_f32(res_13_4, 0)
+                    + vgetq_lane_f32(res_13_4, 1)
+                    + vgetq_lane_f32(res_13_4, 2)
+                    + vgetq_lane_f32(res_13_4, 3);
             }
         }
     }

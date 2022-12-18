@@ -28,6 +28,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:src="@android:drawable/ic_input_delete" />
+
     <!--    <TextView-->
     <!--        android:id="@+id/textSignalTime"-->
     <!--        android:layout_width="wrap_content"-->

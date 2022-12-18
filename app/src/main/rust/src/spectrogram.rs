@@ -30,10 +30,6 @@ const HOP_LENGTH: usize = 160;
 pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
     match unsafe { WHISPER_FILTERS.take() } {
         Some(filters) => {
-            let thread_pool = rayon::ThreadPoolBuilder::new()
-                .num_threads(8)
-                .build()
-                .unwrap();
             let fft_process = get_fft_plan(FFT_LEN);
             let mut working_buffer: Vec<f32> = vec![0.0; FFT_LEN];
             let mut power_spectrum_columns = vec![vec![0.0; N_FFT]; MEL_LEN];
@@ -49,7 +45,6 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                         working_buffer[j] = 0.0;
                     }
                 }
-
                 let fft_complex_output = compute_fft(&working_buffer, &fft_process);
                 let power_spectrum = compute_power(&fft_complex_output, N_FFT);
 
