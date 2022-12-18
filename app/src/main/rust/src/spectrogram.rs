@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::{lina::dot_product, mel::compute_mel, statics::WHISPER_FILTERS};
+use crate::{
+    lina::dot_product, mel::compute_mel, statics::WHISPER_FILTERS,
+    work_buffer::populate_working_buffers,
+};
 use nalgebra::Complex;
 use ndk_sys::exit;
 use rayon::prelude::*;
@@ -31,26 +34,18 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
     match unsafe { WHISPER_FILTERS.take() } {
         Some(filters) => {
             let fft_process = get_fft_plan(FFT_LEN);
-            let mut working_buffer: Vec<f32> = vec![0.0; FFT_LEN];
+
             let mut power_spectrum_columns = vec![vec![0.0; N_FFT]; MEL_LEN];
 
             let hann = hann_window(FFT_LEN);
 
+            let mut working_buffer = populate_working_buffers(hann, f32le_audio);
+
             for i in 0..MEL_LEN {
-                let offset = i * HOP_LENGTH;
-                for j in 0..FFT_LEN {
-                    if offset + j < SAMPLE_RATE * RECORDING_LEN {
-                        working_buffer[j] = hann[j] * f32le_audio[offset + j]
-                    } else {
-                        working_buffer[j] = 0.0;
-                    }
-                }
-                let fft_complex_output = compute_fft(&working_buffer, &fft_process);
+                let fft_complex_output = compute_fft(&mut working_buffer[i], &fft_process);
                 let power_spectrum = compute_power(&fft_complex_output, N_FFT);
 
                 power_spectrum_columns[i].copy_from_slice(&power_spectrum);
-
-                working_buffer.copy_from_slice(&[0.0; FFT_LEN]);
             }
 
             let log_mel_spectrogram =
@@ -94,15 +89,12 @@ fn get_fft_plan(fft_length: usize) -> Arc<dyn Fft<f32>> {
 }
 
 /// Compute an FFT from a working buffer and an FFT process object.
-fn compute_fft(working_buffer: &[f32], fft_process: &Arc<dyn Fft<f32>>) -> Vec<Complex32> {
-    let mut fft_work_buffer: Vec<Complex32> = working_buffer
-        .iter()
-        .map(|&x| Complex { re: x, im: 0.0 })
-        .collect();
-
-    fft_process.process(&mut fft_work_buffer[..]);
-    fft_work_buffer
-    // fft(&working_buffer.to_vec())
+fn compute_fft<'a>(
+    working_buffer: &'a mut [Complex32],
+    fft_process: &Arc<dyn Fft<f32>>,
+) -> &'a [Complex32] {
+    fft_process.process(&mut working_buffer[..]);
+    working_buffer
 }
 /// Compute the power spectrum from an FFT result buffer.
 fn compute_power(fft_work_buffer: &[Complex32], n_fft: usize) -> Vec<f32> {
