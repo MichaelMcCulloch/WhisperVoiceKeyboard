@@ -26,8 +26,8 @@ const HOP_LENGTH: usize = 160;
 ///
 /// ## Return Value
 /// A vector of floats representing the log mel spectrogram.
+// Publishes a function called log_mel_spectrogram which takes a array of f32 numbers as an argument
 pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
-    // Take the whisper filters lock, if it exists.
     match unsafe { WHISPER_FILTERS.take() } {
         Some(filters) => {
             let thread_pool = rayon::ThreadPoolBuilder::new()
@@ -36,9 +36,11 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                 .unwrap();
             let fft_process = get_fft_plan(FFT_LEN);
             let mut working_buffer: Vec<f32> = vec![0.0; FFT_LEN];
-            let mut mel_spectrogram_columns = Vec::with_capacity(MEL_LEN * N_MEL_BINS);
+            let mut power_spectrum_columns = vec![vec![0.0; N_FFT]; MEL_LEN];
+
             let hann = hann_window(FFT_LEN);
-            for i in 0..3000usize {
+
+            for i in 0..MEL_LEN {
                 let offset = i * HOP_LENGTH;
                 for j in 0..FFT_LEN {
                     if offset + j < SAMPLE_RATE * RECORDING_LEN {
@@ -47,28 +49,34 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
                         working_buffer[j] = 0.0;
                     }
                 }
-                let mut log_mel_spectrogram = thread_pool.install(|| {
-                    let fft_complex_output = compute_fft(&working_buffer, &fft_process);
-                    let power_spectrum = compute_power(&fft_complex_output);
 
-                    compute_mel(&power_spectrum, &filters, N_MEL_BINS, N_FFT)
-                });
-                append(&mut mel_spectrogram_columns, &mut log_mel_spectrogram);
-                //Reset the working buffer to all zeros.
+                let fft_complex_output = compute_fft(&working_buffer, &fft_process);
+                let power_spectrum = compute_power(&fft_complex_output, N_FFT);
+
+                power_spectrum_columns[i].copy_from_slice(&power_spectrum);
+
                 working_buffer.copy_from_slice(&[0.0; FFT_LEN]);
             }
 
-            // Replace the whisper filters lock.
+            let log_mel_spectrogram = compute_mel(
+                &power_spectrum_columns,
+                &filters,
+                MEL_LEN,
+                N_MEL_BINS,
+                N_FFT,
+            );
+
             unsafe { WHISPER_FILTERS.replace(filters) };
 
-            // Normalize the mel spectrogram columns buffer.
-            normalize(&mut mel_spectrogram_columns);
+            let mut lms = log_mel_spectrogram
+                .into_iter()
+                .flat_map(|f| f)
+                .collect::<Vec<_>>();
+            normalize(&mut lms);
 
-            // Return the mel spectrogram columns buffer.
-            mel_spectrogram_columns
+            lms
         }
 
-        // If the whisper filter lock does not exist, throw a todo! error.
         None => todo!(),
     }
 }
@@ -107,7 +115,7 @@ fn compute_fft(working_buffer: &[f32], fft_process: &Arc<dyn Fft<f32>>) -> Vec<C
     // fft(&working_buffer.to_vec())
 }
 /// Compute the power spectrum from an FFT result buffer.
-fn compute_power(fft_work_buffer: &[Complex32]) -> Vec<f32> {
+fn compute_power(fft_work_buffer: &[Complex32], n_fft: usize) -> Vec<f32> {
     let mut power_spectrum = vec![0.0; fft_work_buffer.len()];
 
     for i in 0..fft_work_buffer.len() {
@@ -115,32 +123,34 @@ fn compute_power(fft_work_buffer: &[Complex32]) -> Vec<f32> {
     }
 
     // Perform doubling of the power spectrum
-    for j in 1..(fft_work_buffer.len() / 2) {
+    for j in 1..n_fft {
         power_spectrum[j] += power_spectrum[fft_work_buffer.len() - j]
     }
 
-    power_spectrum[0..(fft_work_buffer.len() / 2) + 1].to_vec()
+    power_spectrum[0..n_fft].to_vec()
 }
 
 /// Compute the log mel spectrogram from a power spectrum buffer and filters.
 fn compute_mel(
-    power_spectrum: &[f32],
+    power_spectrum: &[Vec<f32>],
     filters: &[Vec<f32>],
+    n_mel_frames: usize,
     mel_bins: usize,
     n_fft: usize,
-) -> Vec<f32> {
-    let mut log_mel_spectrogram = vec![0.0f32; mel_bins as usize];
-    for i in 0..mel_bins {
-        log_mel_spectrogram[i] = dot_product(&power_spectrum, &filters[i]);
+) -> Vec<Vec<f32>> {
+    let mut spectrogram = vec![vec![0.0; mel_bins]; n_mel_frames];
+    for i in 0..n_mel_frames {
+        for j in 0..mel_bins {
+            for k in 0..n_fft {
+                spectrogram[i][j] += power_spectrum[i][k] * filters[j][k];
+            }
+        }
     }
-
-    log_mel_spectrogram
+    return spectrogram;
 }
 
 /// Append the log mel spectrogram to the mel spectrogram columns buffer.
-fn append(mel_spectrogram_columns: &mut Vec<f32>, log_mel_spectrogram: &mut Vec<f32>) {
-    mel_spectrogram_columns.extend(log_mel_spectrogram.iter());
-}
+fn append(table: &mut Vec<Vec<f32>>, column: &mut Vec<f32>) {}
 
 /// Normalize the mel spectrogram columns buffer.
 fn normalize(mel_spectrogram_columns: &mut [f32]) {
