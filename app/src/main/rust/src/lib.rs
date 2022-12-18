@@ -17,7 +17,7 @@ mod mel;
 mod record;
 mod spectrogram;
 mod statics;
-
+mod work_buffer;
 pub(crate) enum Message {
     Stop,
     Abort,
