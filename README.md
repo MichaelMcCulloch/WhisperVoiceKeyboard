@@ -31,5 +31,5 @@ Integration of the OpenAI speech to text model.
 ## How to run
 - VSCode:
     - Open the vscode project at `/WhisperVoiceKeyboard/app/src/main/rust` and verify the environment variables set in `.vscode/settings.json::rust-analyzer.server.extraEnv` and `.vscode/cargoNdkEnv.sh`
-    - run `./.vscode/build_for_android.sh` to build the rust artifacts.
+    - run `./.vscode/buildAll.sh` to build the rust artifacts.
 - Android Studio: Just open the project. Need to expand project view to see rust files. Primarily for editing the Android App source.
