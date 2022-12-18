@@ -123,7 +123,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 Pair<Optional<float[]>, Long> byteBuffer = RustLib.endRec();
 
                 if (byteBuffer.first.isPresent()) {
-//                    draw(byteBuffer.first.get());
+                    draw(byteBuffer.first.get());
 //                    signalTxt.setText(new String(byteBuffer.second / 1000_000 + " ms"));
                     Pair<String, Long> transcribeAudio = transcribeAudio(byteBuffer.first.get());
                     String transcribed = transcribeAudio.first.trim() + " ";
@@ -210,7 +210,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         }
         //write the bitmap to file
         try {
-            FileOutputStream out = new FileOutputStream(getFilesDir().getAbsolutePath() + "/spectrogram3.png");
+            FileOutputStream out = new FileOutputStream(getFilesDir().getAbsolutePath() + "/spectrogram" + System.nanoTime() + ".png");
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
             out.close();
         } catch (IOException e) {

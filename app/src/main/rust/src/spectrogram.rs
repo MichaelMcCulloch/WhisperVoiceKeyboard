@@ -120,16 +120,18 @@ fn compute_power(fft_work_buffer: &[Complex32], n_fft: usize) -> Vec<f32> {
     power_spectrum[0..n_fft].to_vec()
 }
 
-/// Append the log mel spectrogram to the mel spectrogram columns buffer.
-fn append(table: &mut Vec<Vec<f32>>, column: &mut Vec<f32>) {}
-
 /// Normalize the mel spectrogram columns buffer.
 fn normalize(mel_spectrogram_columns: &mut [f32]) {
     // Compute the maximum value of the mel spectrogram columns buffer.
+    mel_spectrogram_columns
+        .iter_mut()
+        .for_each(|x| *x = (*x).max(1e-10).log10());
+
     let maximum_value = mel_spectrogram_columns
         .iter()
         .fold(-1e20f32, |acc, f| f.max(acc));
+
     mel_spectrogram_columns
         .iter_mut()
-        .for_each(|x| *x = ((*x).max(1e-10).log10().max(maximum_value - 8.0) + 4.0) / 4.0);
+        .for_each(|x| *x = ((*x).max(maximum_value - 8.0) + 4.0) / 4.0);
 }
