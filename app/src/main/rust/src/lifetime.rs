@@ -6,7 +6,7 @@ pub(crate) fn init(mut buffer: Asset) {
 
     match unsafe { WHISPER_FILTERS.take() } {
         None => {
-            let filter = extract::extract_filters_and_vocab(&mut buffer).unwrap();
+            let filter = extract::extract_filters(&mut buffer).unwrap();
             unsafe { WHISPER_FILTERS.replace(filter) };
         }
         _ => {

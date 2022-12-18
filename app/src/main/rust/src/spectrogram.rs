@@ -123,10 +123,15 @@ fn compute_power(fft_work_buffer: &[Complex32]) -> Vec<f32> {
 }
 
 /// Compute the log mel spectrogram from a power spectrum buffer and filters.
-fn compute_mel(power_spectrum: &[f32], filters: &[f32], mel_bins: usize, n_fft: usize) -> Vec<f32> {
+fn compute_mel(
+    power_spectrum: &[f32],
+    filters: &[Vec<f32>],
+    mel_bins: usize,
+    n_fft: usize,
+) -> Vec<f32> {
     let mut log_mel_spectrogram = vec![0.0f32; mel_bins as usize];
     for i in 0..mel_bins {
-        log_mel_spectrogram[i] = dot_product(&power_spectrum, &filters[i * n_fft..(i + 1) * n_fft]);
+        log_mel_spectrogram[i] = dot_product(&power_spectrum, &filters[i]);
     }
 
     log_mel_spectrogram
@@ -136,9 +141,7 @@ fn compute_mel(power_spectrum: &[f32], filters: &[f32], mel_bins: usize, n_fft: 
 fn append(mel_spectrogram_columns: &mut Vec<f32>, log_mel_spectrogram: &mut Vec<f32>) {
     mel_spectrogram_columns.extend(log_mel_spectrogram.iter());
 }
-fn append_empty(mel_spectrogram_columns: &mut Vec<f32>, log_mel_spectrogram: &mut Vec<f32>) {
-    mel_spectrogram_columns.extend(vec![0.0; log_mel_spectrogram.len()]);
-}
+
 /// Normalize the mel spectrogram columns buffer.
 fn normalize(mel_spectrogram_columns: &mut [f32]) {
     // Compute the maximum value of the mel spectrogram columns buffer.
