@@ -223,6 +223,7 @@ pub(crate) fn compute_mel(
 }
 
 #[cfg(target_arch = "aarch64")]
+/// I'm a monster
 pub(crate) fn compute_mel(
     power_spectrum: &[Vec<f32>],
     filters: &[Vec<f32>],
@@ -236,24 +237,24 @@ pub(crate) fn compute_mel(
 
     let mut spectrogram = vec![vec![0.0; mel_bins]; n_mel_frames];
     for i in 0..n_mel_frames {
-        pwr[0..N_FFT].copy_from_slice(&power_spectrum[i]);
-
-        for j in 0..mel_bins {
-            unsafe {
+        unsafe {
+            pwr[0..N_FFT].copy_from_slice(&power_spectrum[i]);
+            let pwr_1 = vld1q_f32_x4(pwr[0..16].as_ptr());
+            let pwr_2 = vld1q_f32_x4(pwr[16..32].as_ptr());
+            let pwr_3 = vld1q_f32_x4(pwr[32..48].as_ptr());
+            let pwr_4 = vld1q_f32_x4(pwr[48..64].as_ptr());
+            let pwr_5 = vld1q_f32_x4(pwr[64..80].as_ptr());
+            let pwr_6 = vld1q_f32_x4(pwr[80..96].as_ptr());
+            let pwr_7 = vld1q_f32_x4(pwr[96..112].as_ptr());
+            let pwr_8 = vld1q_f32_x4(pwr[112..128].as_ptr());
+            let pwr_9 = vld1q_f32_x4(pwr[128..144].as_ptr());
+            let pwr_10 = vld1q_f32_x4(pwr[144..160].as_ptr());
+            let pwr_11 = vld1q_f32_x4(pwr[160..176].as_ptr());
+            let pwr_12 = vld1q_f32_x4(pwr[176..192].as_ptr());
+            let pwr_13 = vld1q_f32_x4(pwr[192..208].as_ptr());
+            for j in 0..mel_bins {
                 flt[0..N_FFT].copy_from_slice(&filters[j]);
-                let pwr_1 = vld1q_f32_x4(pwr[0..16].as_ptr());
-                let pwr_2 = vld1q_f32_x4(pwr[16..32].as_ptr());
-                let pwr_3 = vld1q_f32_x4(pwr[32..48].as_ptr());
-                let pwr_4 = vld1q_f32_x4(pwr[48..64].as_ptr());
-                let pwr_5 = vld1q_f32_x4(pwr[64..80].as_ptr());
-                let pwr_6 = vld1q_f32_x4(pwr[80..96].as_ptr());
-                let pwr_7 = vld1q_f32_x4(pwr[96..112].as_ptr());
-                let pwr_8 = vld1q_f32_x4(pwr[112..128].as_ptr());
-                let pwr_9 = vld1q_f32_x4(pwr[128..144].as_ptr());
-                let pwr_10 = vld1q_f32_x4(pwr[144..160].as_ptr());
-                let pwr_11 = vld1q_f32_x4(pwr[160..176].as_ptr());
-                let pwr_12 = vld1q_f32_x4(pwr[176..192].as_ptr());
-                let pwr_13 = vld1q_f32_x4(pwr[192..208].as_ptr());
+
                 let flt_16_1 = vld1q_f32_x4(flt[0..16].as_ptr());
                 let flt_16_2 = vld1q_f32_x4(flt[16..32].as_ptr());
                 let flt_16_3 = vld1q_f32_x4(flt[32..48].as_ptr());
@@ -528,7 +529,7 @@ pub(crate) fn compute_mel(
                     + vgetq_lane_f32(res_16_13_4, 1)
                     + vgetq_lane_f32(res_16_13_4, 2)
                     + vgetq_lane_f32(res_16_13_4, 3);
-            };
+            }
         }
     }
     return spectrogram;
