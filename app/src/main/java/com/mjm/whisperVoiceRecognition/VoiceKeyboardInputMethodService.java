@@ -1,19 +1,27 @@
 package com.mjm.whisperVoiceRecognition;
 
+import static android.Manifest.permission.RECORD_AUDIO;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
@@ -34,14 +42,24 @@ import java.util.OptionalInt;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
-    private static Interpreter _whisperInterpreter;
-    private static Dictionary _dictionary;
+    private Interpreter _whisperInterpreter;
+    private Dictionary _dictionary;
+
+    private View _primaryView;
+    private View _grantPermView;
 
     private static final boolean LOG_AND_DRAW = false;
 
+    private boolean hasPermissionsForMic = false;
+
     @Override
     public void onCreate() {
+
         super.onCreate();
+
+        _primaryView = primaryView();
+        _grantPermView = noPermissions();
+
         try {
             Vocab vocab = ExtractVocab.extractVocab(getAssets().open("filters_vocab_gen.bin"));
             HashMap<String, String> phraseMappings = new HashMap<>();
@@ -63,8 +81,8 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             e.printStackTrace();
         }
         RustLib.init(getAssets());
-
     }
+
 
     @Override
     public void onDestroy() {
@@ -72,15 +90,51 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         super.onDestroy();
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    public View noPermissions() {
+        View inputView = getLayoutInflater().inflate(R.layout.permissions_needed, null);
+        Button permButton = inputView.findViewById(R.id.requestPermission);
+
+        permButton.setOnClickListener(view -> {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+
+        });
+        return inputView;
+    }
+
+    @Override
+    public void onStartInputView(EditorInfo info, boolean restarting) {
+        super.onStartInputView(info, restarting);
+        if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(RECORD_AUDIO)) {
+            setInputView(_grantPermView);
+        } else {
+            setInputView(_primaryView);
+        }
+    }
+
+    @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public View onCreateInputView() {
-        @SuppressLint("InflateParams") View inputView =
-                getLayoutInflater().inflate(R.layout.keyboard, null);
+        if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(RECORD_AUDIO)) {
+            return _grantPermView;
+        } else {
+            return _primaryView;
+        }
+
+    }
+
+    @NonNull
+    private View primaryView() {
+        View inputView;
+
+
+        inputView = getLayoutInflater().inflate(R.layout.keyboard, null);
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
         Button cancelButton = inputView.findViewById(R.id.buttonCancel);
-        Button deleteButton = inputView.findViewById(R.id.buttonDelete);
-        Button newlineButton = inputView.findViewById(R.id.buttonNewline);
+        ImageButton deleteButton = inputView.findViewById(R.id.buttonDelete);
+        ImageButton newlineButton = inputView.findViewById(R.id.buttonNewline);
 
 
         newlineButton.setOnClickListener(view -> {
@@ -144,6 +198,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 }
             }
         });
+
         return inputView;
     }
 

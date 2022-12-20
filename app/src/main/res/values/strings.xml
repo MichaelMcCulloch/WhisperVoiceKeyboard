@@ -9,4 +9,8 @@
     <string name="VoiceKeyboardService_label">Whisper Voice Keyboard Service</string>
     <string name="VoiceKeyboardService_backspaceLabel">Del</string>
     <string name="VoiceKeyboardService_newlineLabel">\\n</string>
+    <string name="return_key_img_txt">ReturnKey</string>
+    <string name="delete_key_image_text">Delete Key</string>
+    <string name="toast_permission_denied">Record Audio Permission Denied!</string>
+    <string name="microphone_permission_denied">Microphone Permission Denied. Grant?</string>
 </resources>
