@@ -42,8 +42,9 @@ pub(crate) fn log_mel_spectrogram(f32le_audio: &[f32]) -> Vec<f32> {
             let mut working_buffer = populate_working_buffers(hann, f32le_audio);
 
             for i in 0..MEL_LEN {
-                let fft_complex_output = compute_fft(&mut working_buffer[i], &fft_process);
-                let power_spectrum = compute_power(&fft_complex_output, N_FFT);
+                fft_process.process(&mut working_buffer[i]);
+
+                let power_spectrum = compute_power(&working_buffer[i], N_FFT);
 
                 power_spectrum_columns[i].copy_from_slice(&power_spectrum);
             }
