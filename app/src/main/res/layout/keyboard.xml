@@ -19,7 +19,7 @@
             android:id="@+id/buttonRecord"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
+            android:textAllCaps="false"
             android:layout_weight="1"
             android:textOff="@string/VoiceKeyboardService_toggleOffLabel"
             android:textOn="@string/VoiceKeyboardService_toggleOnLabel"
@@ -30,6 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
+            android:textAllCaps="false"
             android:layout_weight="1"
             android:text="@string/VoiceKeyboardService_cancelLabel" />
     </LinearLayout>
@@ -44,18 +45,26 @@
         app:layout_constraintTop_toTopOf="parent">
 
 
-        <Button
+        <ImageButton
             android:id="@+id/buttonDelete"
+            android:textAllCaps="false"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="50dp"
             android:layout_weight="1"
+            android:contentDescription="@string/delete_key_image_text"
+            android:scaleType="fitCenter"
+            android:src="@drawable/backspace"
             android:text="@string/VoiceKeyboardService_backspaceLabel" />
 
-        <Button
+        <ImageButton
+            android:textAllCaps="false"
             android:id="@+id/buttonNewline"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:contentDescription="@string/return_key_img_txt"
+            android:scaleType="fitCenter"
+            android:src="@drawable/resource_return"
             android:text="@string/VoiceKeyboardService_newlineLabel" />
 
 
