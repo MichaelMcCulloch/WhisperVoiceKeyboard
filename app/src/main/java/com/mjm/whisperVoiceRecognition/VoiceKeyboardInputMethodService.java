@@ -80,6 +80,13 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
         Button cancelButton = inputView.findViewById(R.id.buttonCancel);
         Button deleteButton = inputView.findViewById(R.id.buttonDelete);
+        Button newlineButton = inputView.findViewById(R.id.buttonNewline);
+
+
+        newlineButton.setOnClickListener(view -> {
+            getCurrentInputConnection().sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+            getCurrentInputConnection().sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER));
+        });
 
         deleteButton.setOnClickListener(view -> {
             sendDelete();
@@ -101,7 +108,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                     case MotionEvent.ACTION_DOWN:
                         if (mHandler != null) return true;
                         mHandler = new Handler(Looper.getMainLooper());
-                        mHandler.postDelayed(mAction, 0);
+                        mHandler.post(mAction);
                         return true;
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
@@ -117,12 +124,15 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         cancelButton.setOnClickListener(v -> {
             RustLib.abortRecording();
             recordButton.setChecked(false);
+            cancelButton.setVisibility(View.GONE);
         });
 
         recordButton.setOnCheckedChangeListener((button, checked) -> {
             if (checked && getBottomMicrophone().isPresent()) {
                 RustLib.startRecording(getBottomMicrophone().get());
+                cancelButton.setVisibility(View.VISIBLE);
             } else {
+                cancelButton.setVisibility(View.GONE);
                 Optional<float[]> byteBuffer = RustLib.endRec();
                 if (byteBuffer.isPresent()) {
                     String transcribeAudio = transcribeAudio(byteBuffer.get());

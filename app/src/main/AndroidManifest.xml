@@ -19,6 +19,7 @@
             android:permission="android.permission.BIND_INPUT_METHOD"
             android:exported="true"
             tools:ignore="WrongManifestParent">
+
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
