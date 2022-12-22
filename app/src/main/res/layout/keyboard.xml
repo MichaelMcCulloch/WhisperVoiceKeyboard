@@ -2,6 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/input"
+    android:backgroundTint="@android:color/black"
+
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -10,6 +12,8 @@
         android:id="@+id/recorder"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:backgroundTint="@android:color/black"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/editor"
         app:layout_constraintStart_toStartOf="parent"
@@ -17,6 +21,7 @@
 
         <ToggleButton
             android:id="@+id/buttonRecord"
+            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAllCaps="false"
@@ -27,6 +32,7 @@
 
         <Button
             android:id="@+id/buttonCancel"
+            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
@@ -36,7 +42,10 @@
     </LinearLayout>
 
     <LinearLayout
+
         android:id="@+id/editor"
+        android:backgroundTint="@android:color/black"
+
         android:layout_width="120dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -47,25 +56,27 @@
 
         <ImageButton
             android:id="@+id/buttonDelete"
-            android:textAllCaps="false"
+            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
             android:contentDescription="@string/delete_key_image_text"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
             android:src="@drawable/backspace"
-            android:text="@string/VoiceKeyboardService_backspaceLabel" />
+            android:text="@string/VoiceKeyboardService_backspaceLabel"
+            android:textAllCaps="false" />
 
         <ImageButton
-            android:textAllCaps="false"
             android:id="@+id/buttonNewline"
+            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:contentDescription="@string/return_key_img_txt"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
             android:src="@drawable/resource_return"
-            android:text="@string/VoiceKeyboardService_newlineLabel" />
+            android:text="@string/VoiceKeyboardService_newlineLabel"
+            android:textAllCaps="false" />
 
 
     </LinearLayout>
