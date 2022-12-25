@@ -9,7 +9,6 @@ use jni::{
 mod asset;
 mod consts;
 mod extract;
-mod jni_util;
 mod job;
 mod lifetime;
 mod mel;

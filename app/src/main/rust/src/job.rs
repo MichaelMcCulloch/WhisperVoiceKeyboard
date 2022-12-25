@@ -3,9 +3,8 @@ use std::{
     sync::{mpsc::Receiver, Arc},
 };
 
-use ac_ffmpeg::codec::{
-    audio::{AudioFrame, AudioFrameMut, AudioResampler, ChannelLayout, SampleFormat},
-    Encoder,
+use ac_ffmpeg::codec::audio::{
+    AudioFrame, AudioFrameMut, AudioResampler, ChannelLayout, SampleFormat,
 };
 use crossbeam_queue::ArrayQueue;
 use ndk::audio::{
@@ -23,11 +22,9 @@ const RECORDING_FORMAT_F32_FFMPEG: &str = "flt";
 
 const SIXTEEN_KHZ: usize = 16000;
 const MONO_CHANNEL: usize = 1;
-const U8_PER_I16: usize = 2;
+
 const U8_PER_F32: usize = 4;
 
-const U8_COUNT_FOR_30SECONDS_16KHZ_I16_AUDIO: usize =
-    SIXTEEN_KHZ * THIRTY_SECONDS * MONO_CHANNEL * U8_PER_I16;
 const U8_COUNT_FOR_30SECONDS_16KHZ_F32_AUDIO: usize =
     SIXTEEN_KHZ * THIRTY_SECONDS * MONO_CHANNEL * U8_PER_F32;
 

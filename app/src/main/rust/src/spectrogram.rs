@@ -78,14 +78,6 @@ fn get_fft_plan(fft_length: usize) -> Arc<dyn Fft<f32>> {
     fft_planner.plan_fft_forward(fft_length)
 }
 
-/// Compute an FFT from a working buffer and an FFT process object.
-fn compute_fft<'a>(
-    working_buffer: &'a mut [Complex32],
-    fft_process: &Arc<dyn Fft<f32>>,
-) -> &'a [Complex32] {
-    fft_process.process(&mut working_buffer[..]);
-    working_buffer
-}
 /// Compute the power spectrum from an FFT result buffer.
 fn compute_power(fft_work_buffer: &[Complex32], n_fft: usize) -> Vec<f32> {
     let mut power_spectrum = vec![0.0; fft_work_buffer.len()];

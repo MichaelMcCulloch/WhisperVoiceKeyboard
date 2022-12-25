@@ -39,7 +39,7 @@ android {
 
 cargoNdk {
 
-    int apiLevel = 30
+    int apiLevel = 33
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
     def sdkDir = properties.getProperty('sdk.dir')
