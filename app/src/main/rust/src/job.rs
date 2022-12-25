@@ -9,8 +9,8 @@ use ac_ffmpeg::codec::{
 };
 use crossbeam_queue::ArrayQueue;
 use ndk::audio::{
-    AudioAllowedCapturePolicy, AudioCallbackResult, AudioDirection, AudioFormat,
-    AudioPerformanceMode, AudioSharingMode, AudioStream, AudioStreamBuilder,
+    AudioAllowedCapturePolicy, AudioCallbackResult, AudioDirection, AudioFormat, AudioSharingMode,
+    AudioStream, AudioStreamBuilder,
 };
 
 use crate::{spectrogram::log_mel_spectrogram, Message};
