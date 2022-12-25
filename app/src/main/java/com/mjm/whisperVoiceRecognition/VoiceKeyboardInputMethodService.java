@@ -78,8 +78,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
     @Override
     public void onDestroy() {
-        RustLib.uninit();
         super.onDestroy();
+        RustLib.uninit();
+
     }
 
     @Override
