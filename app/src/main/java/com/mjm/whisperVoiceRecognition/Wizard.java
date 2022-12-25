@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -31,6 +32,7 @@ public class Wizard extends AppCompatActivity {
         });
 
         btnExit.setOnClickListener(v -> {
+            Toast.makeText(this, R.string.wizard_completed, Toast.LENGTH_LONG).show();
             finish();
         });
     }

@@ -1,24 +1,13 @@
 use std::sync::Arc;
 
 use crate::{
-    lina::dot_product, mel::compute_mel, statics::WHISPER_FILTERS,
+    consts::{FFT_LEN, MEL_LEN, N_FFT, N_MEL_BINS},
+    mel::compute_mel,
+    statics::WHISPER_FILTERS,
     work_buffer::populate_working_buffers,
 };
-use nalgebra::Complex;
-use ndk_sys::exit;
-use rayon::prelude::*;
 
-use rustfft::{num_complex::Complex32, num_traits::Zero, Fft};
-
-const SAMPLE_RATE: usize = 16000;
-const RECORDING_LEN: usize = 30;
-const N_FFT: usize = 201;
-const FFT_LEN: usize = 400;
-
-const N_MEL_BINS: usize = 80;
-const MEL_LEN: usize = 3000;
-
-const HOP_LENGTH: usize = 160;
+use rustfft::{num_complex::Complex32, Fft};
 
 /// This method is used to generate a log mel spectrogram from a given `f32le_audio` vector. It does this by applying a window function and using an FFT process to compute the power spectrum, before computing the logmel spectrogram.
 ///

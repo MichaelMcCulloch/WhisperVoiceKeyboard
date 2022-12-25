@@ -13,8 +13,9 @@
     <string name="delete_key_image_text">Delete Key</string>
     <string name="toast_permission_denied">Record Audio Permission Denied!</string>
     <string name="microphone_permission_denied">Microphone Permission Denied. Grant?</string>
-    <string name="enable_input_method">Enable Input Method</string>
+    <string name="enable_input_method">1. Enable Input Method</string>
     <string name="toast_grant_microphone_permission">Please Grant Microphone Permission</string>
-    <string name="grant_microphone_permission">Grant Microphone Permission</string>
-    <string name="exit">Exit</string>
+    <string name="wizard_completed">Keyboard Now Available In Keyboard Switcher</string>
+    <string name="grant_microphone_permission">2. Grant Microphone Permission</string>
+    <string name="exit">Done!</string>
 </resources>
