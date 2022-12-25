@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">Whisper Voice Keyboard Rust</string>
-    <string name="WhisperVoiceRecognitionService_label">Whisper Voice Recognition Service Rust</string>
+    <string name="app_name">ScreamScribe</string>
+    <string name="WhisperVoiceRecognitionService_label">ScreamScribe</string>
     <string name="VoiceKeyboardService_toggleOffLabel">Record</string>
     <string name="VoiceKeyboardService_toggleOnLabel">Transcribe</string>
     <string name="VoiceKeyboardService_pauseLabel">Pause</string>
     <string name="VoiceKeyboardService_resumeLabel">Resume</string>
     <string name="VoiceKeyboardService_cancelLabel">Cancel</string>
-    <string name="VoiceKeyboardService_label">Whisper Voice Keyboard Service</string>
+    <string name="VoiceKeyboardService_label">ScreamScribe</string>
     <string name="VoiceKeyboardService_backspaceLabel">Del</string>
     <string name="VoiceKeyboardService_newlineLabel">\\n</string>
     <string name="return_key_img_txt">ReturnKey</string>
@@ -14,6 +14,7 @@
     <string name="toast_permission_denied">Record Audio Permission Denied!</string>
     <string name="microphone_permission_denied">Microphone Permission Denied. Grant?</string>
     <string name="enable_input_method">Enable Input Method</string>
+    <string name="toast_grant_microphone_permission">Please Grant Microphone Permission</string>
     <string name="grant_microphone_permission">Grant Microphone Permission</string>
     <string name="exit">Exit</string>
 </resources>
