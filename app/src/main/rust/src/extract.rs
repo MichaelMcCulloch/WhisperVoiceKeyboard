@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Read};
+use std::io::Read;
 
 use anyhow::anyhow;
 use ndk::asset::Asset;
@@ -26,7 +26,7 @@ fn read_vec_of_vec_f32(
     n_fft: usize,
 ) -> Result<Vec<Vec<f32>>, anyhow::Error> {
     let mut filters: Vec<Vec<f32>> = Vec::with_capacity(n_mel);
-    for i in 0..n_mel {
+    for _i in 0..n_mel {
         let mut data = vec![0u8; 4 * n_fft];
         asset.read_exact(&mut data)?;
 
