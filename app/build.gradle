@@ -12,7 +12,6 @@ android {
     defaultConfig {
         applicationId 'com.mjm.WhisperVoiceKeyboard'
         minSdk 29
-        //noinspection ExpiredTargetSdkVersion
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -39,7 +38,7 @@ android {
 
 cargoNdk {
 
-    int apiLevel = 33
+    int apiLevel = 29
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
     def sdkDir = properties.getProperty('sdk.dir')
