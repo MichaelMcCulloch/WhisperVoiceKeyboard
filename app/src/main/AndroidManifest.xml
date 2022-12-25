@@ -13,22 +13,33 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WhisperVoiceKeyboard">
 
+        <activity
+            android:name="com.mjm.whisperVoiceRecognition.Wizard"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.wizard"
+                android:value="" />
+        </activity>
+
         <service
             android:name="com.mjm.whisperVoiceRecognition.VoiceKeyboardInputMethodService"
+            android:exported="true"
             android:label="@string/VoiceKeyboardService_label"
             android:permission="android.permission.BIND_INPUT_METHOD"
-            android:exported="true"
             tools:ignore="WrongManifestParent">
-
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
+
             <meta-data
                 android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
-
-
     </application>
 
 </manifest>

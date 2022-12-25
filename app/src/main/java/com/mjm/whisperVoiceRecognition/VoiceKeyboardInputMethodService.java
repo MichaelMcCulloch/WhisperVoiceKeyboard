@@ -11,10 +11,8 @@ import android.content.res.AssetManager;
 import android.inputmethodservice.InputMethodService;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -22,6 +20,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
@@ -45,20 +44,15 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     private Interpreter _whisperInterpreter;
     private Dictionary _dictionary;
 
-    private View _primaryView;
-    private View _grantPermView;
 
     private static final boolean LOG_AND_DRAW = false;
 
-    private boolean hasPermissionsForMic = false;
 
     @Override
     public void onCreate() {
 
         super.onCreate();
 
-        _primaryView = primaryView();
-        _grantPermView = noPermissions();
 
         try {
             Vocab vocab = ExtractVocab.extractVocab(getAssets().open("filters_vocab_gen.bin"));
@@ -90,43 +84,20 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         super.onDestroy();
     }
 
-    public View noPermissions() {
-        View inputView = getLayoutInflater().inflate(R.layout.permissions_needed, null);
-        Button permButton = inputView.findViewById(R.id.requestPermission);
-
-        permButton.setOnClickListener(view -> {
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setData(Uri.parse("package:" + getPackageName()));
-            startActivity(intent);
-
-        });
-        return inputView;
-    }
-
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
         if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(RECORD_AUDIO)) {
-            setInputView(_grantPermView);
-        } else {
-            setInputView(_primaryView);
+            Intent intent = new Intent(this, Wizard.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            Toast.makeText(this, "Please Grant Microphone Permission", Toast.LENGTH_LONG).show();
         }
     }
 
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     @Override
     public View onCreateInputView() {
-        if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(RECORD_AUDIO)) {
-            return _grantPermView;
-        } else {
-            return _primaryView;
-        }
-
-    }
-
-    @NonNull
-    private View primaryView() {
         View inputView;
 
 
@@ -200,7 +171,10 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         });
 
         return inputView;
+
+
     }
+
 
     private void sendDelete() {
         getCurrentInputConnection().sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
