@@ -1,4 +1,6 @@
+#[allow(dead_code)]
 pub(crate) const SAMPLE_RATE: usize = 16000;
+#[allow(dead_code)]
 pub(crate) const RECORDING_LEN: usize = 30;
 pub(crate) const N_FFT: usize = 201;
 pub(crate) const FFT_LEN: usize = 400;
