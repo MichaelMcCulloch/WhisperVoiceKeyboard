@@ -86,10 +86,10 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     public void onStartInputView(EditorInfo info, boolean restarting) {
         super.onStartInputView(info, restarting);
         if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(RECORD_AUDIO)) {
+            Toast.makeText(this, R.string.toast_grant_microphone_permission, Toast.LENGTH_LONG).show();
             Intent intent = new Intent(this, Wizard.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            Toast.makeText(this, R.string.toast_grant_microphone_permission, Toast.LENGTH_LONG).show();
         }
     }
 
