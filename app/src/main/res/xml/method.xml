@@ -4,6 +4,6 @@
     <subtype
         android:imeSubtypeLocale="en_US"
         android:imeSubtypeMode="keyboard"
-        android:label="asdflj" />
+        android:label="Voice Based Input Method" />
 
 </input-method>

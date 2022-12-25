@@ -61,7 +61,7 @@ public class ExtractVocab {
         } else throw new IOException("bad magic");
     }
 
-    public static List<Float> readVecF32(InputStream asset, int numberOfBytes) throws IOException {
+    private static List<Float> readVecF32(InputStream asset, int numberOfBytes) throws IOException {
         byte[] data = new byte[4 * numberOfBytes];
         asset.read(data);
 
@@ -75,7 +75,7 @@ public class ExtractVocab {
         return vec;
     }
 
-    public static String readString(InputStream asset, int stringLen) throws IOException {
+    private static String readString(InputStream asset, int stringLen) throws IOException {
         byte[] data = new byte[stringLen];
         asset.read(data);
 
@@ -86,14 +86,14 @@ public class ExtractVocab {
         return sb.toString();
     }
 
-    public static int readI32(InputStream asset) throws IOException {
+    private static int readI32(InputStream asset) throws IOException {
         byte[] buffer = new byte[4];
         asset.read(buffer);
         int anInt = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt();
         return anInt;
     }
 
-    public static int readU32(InputStream asset) throws IOException {
+    private static int readU32(InputStream asset) throws IOException {
         byte[] buffer = new byte[4];
         asset.read(buffer);
         int anInt = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).getInt();

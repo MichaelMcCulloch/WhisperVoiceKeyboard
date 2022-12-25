@@ -7,13 +7,13 @@ apply plugin: "com.github.willir.rust.cargo-ndk-android"
 
 android {
     namespace 'com.example.WhisperVoiceKeyboard'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId 'com.mjm.WhisperVoiceKeyboard'
-        minSdk 29
+        minSdk 28
         //noinspection ExpiredTargetSdkVersion
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
