@@ -13,7 +13,6 @@ import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -61,7 +60,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
             _dictionary = new Dictionary(vocab, phraseMappings);
             MappedByteBuffer model = loadWhisperModel(getAssets());
-            Log.i("TFLITE", "onCreateInputView: " + "Created tflitemodel");
 
             Interpreter.Options options = new Interpreter.Options();
 
@@ -91,7 +89,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             Intent intent = new Intent(this, Wizard.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            Toast.makeText(this, "Please Grant Microphone Permission", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.toast_grant_microphone_permission, Toast.LENGTH_LONG).show();
         }
     }
 
