@@ -1,5 +1,3 @@
-use crate::consts::N_FFT;
-
 /// Compute the log mel spectrogram from a power spectrum buffer and filters.
 #[cfg(not(target_arch = "aarch64"))]
 pub(crate) fn compute_mel(
@@ -214,9 +212,6 @@ pub(crate) fn compute_mel(
             spectrogram[i][j] += power_spectrum[i][199] * filters[j][199];
 
             spectrogram[i][j] += power_spectrum[i][200] * filters[j][200];
-            spectrogram[i][j] += 0.0 * 0.0;
-            spectrogram[i][j] += 0.0 * 0.0;
-            spectrogram[i][j] += 0.0 * 0.0;
         }
     }
     return spectrogram;
@@ -230,6 +225,7 @@ pub(crate) fn compute_mel(
     n_mel_frames: usize,
     mel_bins: usize,
 ) -> Vec<Vec<f32>> {
+    use crate::consts::N_FFT;
     use std::arch::aarch64::{vdupq_n_f32, vfmaq_f32, vgetq_lane_f32, vld1q_f32_x4};
 
     let mut pwr = [0.0; 208];
