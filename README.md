@@ -1,6 +1,6 @@
 # Whisper-based Voice Keyboard
 
-Integration of the OpenAI speech to text model.
+Integration of the OpenAI speech to text model into Android.
 
 ## Preparation
 
