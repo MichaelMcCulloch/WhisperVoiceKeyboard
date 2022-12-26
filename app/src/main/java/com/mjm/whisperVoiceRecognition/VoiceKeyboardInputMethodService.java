@@ -13,7 +13,9 @@ import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -23,6 +25,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.WhisperVoiceKeyboard.R;
 
@@ -43,6 +46,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     private Interpreter _whisperInterpreter;
     private Dictionary _dictionary;
 
+    private static final String WHISPER_TFLITE = "whisper.tflite";
 
     private static final boolean LOG_AND_DRAW = false;
 
@@ -98,9 +102,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     @Override
     public View onCreateInputView() {
         View inputView;
+        ContextThemeWrapper ctx = new ContextThemeWrapper(this, R.style.Theme_ScreamScribe);
 
-
-        inputView = getLayoutInflater().inflate(R.layout.keyboard, null);
+        inputView = (ConstraintLayout) LayoutInflater.from(ctx).inflate(R.layout.keyboard, null);
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
         Button cancelButton = inputView.findViewById(R.id.buttonCancel);
         ImageButton deleteButton = inputView.findViewById(R.id.buttonDelete);
@@ -161,7 +165,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
                 if (byteBuffer.isPresent()) {
                     String transcribeAudio = transcribeAudio(byteBuffer.get());
                     String transcribed = transcribeAudio.trim() + " ";
-                    getCurrentInputConnection().commitText(transcribed, transcribed.length());
+                    getCurrentInputConnection().commitText(transcribed, 1);
                     if (LOG_AND_DRAW) {
                         SpectrogramToFile.save(byteBuffer.get(), getFilesDir().getAbsolutePath());
                     }
@@ -240,7 +244,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
 
     private static MappedByteBuffer loadWhisperModel(AssetManager assets)
             throws IOException {
-        AssetFileDescriptor fileDescriptor = assets.openFd("whisper.tflite");
+        AssetFileDescriptor fileDescriptor = assets.openFd(WHISPER_TFLITE);
         FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
         FileChannel fileChannel = inputStream.getChannel();
         long startOffset = fileDescriptor.getStartOffset();

@@ -2,8 +2,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/input"
-    android:backgroundTint="@android:color/black"
-
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -12,8 +10,6 @@
         android:id="@+id/recorder"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:backgroundTint="@android:color/black"
-
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/editor"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,31 +17,44 @@
 
         <ToggleButton
             android:id="@+id/buttonRecord"
-            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAllCaps="false"
             android:layout_weight="1"
+            android:layout_marginHorizontal="5dp"
+            android:textColor="?attr/colorOnPrimary"
+            android:background="@drawable/button_shape"
+            android:shadowColor="?attr/colorOnSecondary"
+            android:shadowDx="1"
+            android:shadowDy="0"
+            android:shadowRadius="5"
+
+
             android:textOff="@string/VoiceKeyboardService_toggleOffLabel"
             android:textOn="@string/VoiceKeyboardService_toggleOnLabel"
             app:icon="@android:drawable/ic_btn_speak_now" />
 
         <Button
             android:id="@+id/buttonCancel"
-            android:backgroundTint="@android:color/white"
+
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="5dp"
+            android:background="@drawable/button_shape"
+            android:shadowColor="?attr/colorOnSecondary"
+            android:shadowDx="1"
+            android:shadowDy="0"
+            android:shadowRadius="5"
+
             android:visibility="gone"
             android:textAllCaps="false"
-            android:layout_weight="1"
             android:text="@string/VoiceKeyboardService_cancelLabel" />
     </LinearLayout>
 
     <LinearLayout
 
         android:id="@+id/editor"
-        android:backgroundTint="@android:color/black"
-
         android:layout_width="120dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -56,27 +65,42 @@
 
         <ImageButton
             android:id="@+id/buttonDelete"
-            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="1"
+            android:padding="10dp"
+            android:background="@drawable/button_shape"
+            android:shadowColor="?attr/colorOnSecondary"
+            android:shadowDx="1"
+            android:shadowDy="0"
+            android:shadowRadius="5"
             android:contentDescription="@string/delete_key_image_text"
+            android:layout_marginHorizontal="5dp"
             android:scaleType="centerCrop"
             android:src="@drawable/backspace"
             android:text="@string/VoiceKeyboardService_backspaceLabel"
             android:textAllCaps="false" />
 
-        <ImageButton
+
+        <android.widget.ImageButton
             android:id="@+id/buttonNewline"
-            android:backgroundTint="@android:color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:padding="10dp"
             android:contentDescription="@string/return_key_img_txt"
+            android:layout_marginHorizontal="5dp"
+            android:background="@drawable/button_shape"
+            android:shadowColor="?attr/colorOnSecondary"
+            android:shadowDx="1"
+            android:shadowDy="0"
+            android:shadowRadius="5"
+
             android:scaleType="centerCrop"
-            android:src="@drawable/resource_return"
+            android:src="@drawable/newline"
             android:text="@string/VoiceKeyboardService_newlineLabel"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"
+            android:textColor="?attr/colorOnPrimary" />
 
 
     </LinearLayout>
