@@ -24,7 +24,7 @@ Integration of the OpenAI speech to text model.
 
 ### Assets (Included)
 
-- `whisper.tflite` TFLite Model + `filters_vocab_gen.bin`
+- `whisper.tflite` TFLite Model + `filters_vocab_gen.bin` Mel Filters and Vocab
     - [How it was made](https://github.com/openai/whisper/discussions/11)
     - [Where I found it](https://github.com/openai/whisper/discussions/506)
     - [Where I got it](https://github.com/openai/whisper/discussions/443)
