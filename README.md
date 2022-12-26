@@ -28,6 +28,8 @@ Integration of the OpenAI speech to text model.
     - [How it was made](https://github.com/openai/whisper/discussions/11)
     - [Where I found it](https://github.com/openai/whisper/discussions/506)
     - [Where I got it](https://github.com/openai/whisper/discussions/443)
+- `libswscale.so libswresample.so libavutil.so libavformat.so libavfilter.so libavdevice.so libavcodec.so` FFMPEG for android
+    - [How to build it](https://github.com/Javernaut/ffmpeg-android-maker)
 
 ## How to run
 
