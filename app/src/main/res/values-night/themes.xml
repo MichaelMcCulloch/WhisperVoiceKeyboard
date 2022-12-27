@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.ScreamScribe" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <style name="Theme.WhisperVoiceKeyboard" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/dark_light</item>
         <item name="colorPrimaryVariant">@color/dark_dark</item>
