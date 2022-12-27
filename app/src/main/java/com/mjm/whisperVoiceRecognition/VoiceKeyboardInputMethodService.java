@@ -102,7 +102,7 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     @Override
     public View onCreateInputView() {
         View inputView;
-        ContextThemeWrapper ctx = new ContextThemeWrapper(this, R.style.Theme_ScreamScribe);
+        ContextThemeWrapper ctx = new ContextThemeWrapper(this, R.style.Theme_WhisperVoiceKeyboard);
 
         inputView = (ConstraintLayout) LayoutInflater.from(ctx).inflate(R.layout.keyboard, null);
         ToggleButton recordButton = inputView.findViewById(R.id.buttonRecord);
