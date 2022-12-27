@@ -21,7 +21,7 @@
             android:layout_height="match_parent"
             android:textAllCaps="false"
             android:layout_weight="1"
-            android:layout_marginHorizontal="5dp"
+            android:layout_margin="5dp"
             android:textColor="?attr/colorOnPrimary"
             android:background="@drawable/button_shape"
             android:shadowColor="?attr/colorOnSecondary"
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:layout_marginHorizontal="5dp"
+            android:layout_margin="5dp"
             android:background="@drawable/button_shape"
             android:shadowColor="?attr/colorOnSecondary"
             android:shadowDx="1"
@@ -75,27 +75,26 @@
             android:shadowDy="0"
             android:shadowRadius="5"
             android:contentDescription="@string/delete_key_image_text"
-            android:layout_marginHorizontal="5dp"
+            android:layout_margin="5dp"
             android:scaleType="centerCrop"
             android:src="@drawable/backspace"
             android:text="@string/VoiceKeyboardService_backspaceLabel"
             android:textAllCaps="false" />
 
 
-        <android.widget.ImageButton
+        <ImageButton
             android:id="@+id/buttonNewline"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:padding="10dp"
             android:contentDescription="@string/return_key_img_txt"
-            android:layout_marginHorizontal="5dp"
+            android:layout_margin="5dp"
             android:background="@drawable/button_shape"
             android:shadowColor="?attr/colorOnSecondary"
             android:shadowDx="1"
             android:shadowDy="0"
             android:shadowRadius="5"
-
             android:scaleType="centerCrop"
             android:src="@drawable/newline"
             android:text="@string/VoiceKeyboardService_newlineLabel"
