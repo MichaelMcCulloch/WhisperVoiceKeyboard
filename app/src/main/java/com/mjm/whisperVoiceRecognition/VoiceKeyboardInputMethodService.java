@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.inputmethodservice.InputMethodService;
-import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,11 +34,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
@@ -155,9 +152,13 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             cancelButton.setVisibility(View.GONE);
         });
 
+        final MicrophoneResolver microphoneResolver = new MicrophoneResolver((AudioManager) getSystemService(Context.AUDIO_SERVICE));
+
         recordButton.setOnCheckedChangeListener((button, checked) -> {
-            if (checked && getBottomMicrophone().isPresent()) {
-                RustLib.startRecording(getBottomMicrophone().get());
+            Optional<AudioDeviceConfig> microphone = microphoneResolver.resolveMicrophone();
+            if (checked && microphone.isPresent()) {
+                AudioDeviceConfig foundMicrophone = microphone.get();
+                RustLib.startRecording(foundMicrophone);
                 cancelButton.setVisibility(View.VISIBLE);
             } else {
                 cancelButton.setVisibility(View.GONE);
@@ -174,8 +175,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         });
 
         return inputView;
-
-
     }
 
 
@@ -216,30 +215,6 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
             }
         }
         return reshapedFloats;
-    }
-
-
-    private Optional<AudioDeviceConfig> getBottomMicrophone() {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        AudioDeviceInfo[] adi = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-        Optional<AudioDeviceInfo> bottomMic = Arrays.stream(adi)
-                .filter(audioDeviceInfo -> audioDeviceInfo.getAddress().equals("bottom"))
-                .findAny();
-
-        if (bottomMic.isPresent()) {
-
-            OptionalInt maxSampleRate = Arrays.stream(bottomMic.get().getSampleRates())
-                    .max();
-            OptionalInt minChannels = Arrays.stream(bottomMic.get().getChannelCounts())
-                    .min();
-            if (maxSampleRate.isPresent() && minChannels.isPresent()) {
-                AudioDeviceConfig audioDeviceConfig = new AudioDeviceConfig(bottomMic.get().getId(), maxSampleRate.getAsInt(), minChannels.getAsInt());
-
-                return Optional.of(audioDeviceConfig);
-            }
-            return Optional.empty();
-        }
-        return Optional.empty();
     }
 
     private static MappedByteBuffer loadWhisperModel(AssetManager assets)
