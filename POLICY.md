@@ -12,7 +12,7 @@ For a better experience, while using our Service, I may require you to provide u
 
 **Log Data**
 
-I want to inform you that whenever you use my Service, in a case of an error in the app I collect nothing and no information. If it goes boom, I have no way of knowing.
+I want to inform you that whenever you use my Service, in a case of an error in the app I collect nothing and no information. If it crashes, I have no way of knowing.
 
 **Cookies**
 
