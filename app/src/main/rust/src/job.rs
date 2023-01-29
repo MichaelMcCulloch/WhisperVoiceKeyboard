@@ -97,7 +97,7 @@ fn get_audio_stream(
         .sample_rate(sample_rate)
         .channel_count(channels)
         .format(RECORDING_FORMAT_S16_NDK)
-        .allowed_capture_policy(AudioAllowedCapturePolicy::AllowCaptureByNone)
+        // .allowed_capture_policy(AudioAllowedCapturePolicy::AllowCaptureByNone)
         .data_callback(Box::new(
             move |_audio_stream, frame_buffer, count| -> AudioCallbackResult {
                 // Android is LITTLE ENDIAN; ffmpeg will use native endianness -> can just realign and it will work

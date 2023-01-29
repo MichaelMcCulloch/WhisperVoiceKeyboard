@@ -1,20 +1,26 @@
 plugins {
     id 'com.android.application'
 }
-
+apply plugin: "com.github.willir.rust.cargo-ndk-android"
 android {
     namespace 'com.mjm.whisperkeyboardwatch'
     compileSdk 33
 
     defaultConfig {
         applicationId "com.mjm.whisperkeyboardwatch"
-        minSdk 30
+        minSdk 28
         targetSdk 33
         versionCode 1
         versionName "1.0"
+        signingConfig signingConfigs.debug
 
     }
-
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    ndkVersion '25.1.8937393'
+    buildToolsVersion '33.0.1'
     buildTypes {
         release {
             minifyEnabled false
@@ -22,11 +28,57 @@ android {
         }
     }
 }
+cargoNdk {
 
+    int apiLevel = 28
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def sdkDir = properties.getProperty('sdk.dir')
+    def ndkDir = properties.getProperty('ndk.dir')
+
+
+    def jniInclude = "${project.rootDir}/whisperkeyboardwatch/src/main/jniInclude"
+    def jniLibs = "${project.rootDir}/whisperkeyboardwatch/src/main/jniLibs"
+
+
+    targets = ["arm64", "arm", "x86", "x86_64"]
+    librariesNames = ["librust.so"]
+    extraCargoEnv = [
+            "ANDROID_SDK_HOME"                          : "${sdkDir}/",
+            "ANDROID_NDK_HOME"                          : "${ndkDir}/",
+            "ANDROID_NDK_API_LEVEL"                     : apiLevel,
+            "ANDROID_SDK_VERSION"                       : apiLevel,
+            "ANDROID_API_LEVEL"                         : apiLevel,
+            "ANDROID_BUILD_TOOLS_VERSION"               : "33.0.1",
+            "ANDROID_HOME"                              : "${sdkDir}/build-tools/33.0.1",
+            "FFMPEG_INCLUDE_DIR_X86_64_LINUX_ANDROID"   : "${jniInclude}/x86_64/",
+            "FFMPEG_LIB_DIR_X86_64_LINUX_ANDROID"       : "${jniLibs}/x86_64/",
+
+            "FFMPEG_INCLUDE_DIR_AARCH64_LINUX_ANDROID"  : "${jniInclude}/arm64-v8a/",
+            "FFMPEG_LIB_DIR_AARCH64_LINUX_ANDROID"      : "${jniLibs}/arm64-v8a/",
+
+            "FFMPEG_INCLUDE_DIR_ARMV7_LINUX_ANDROIDEABI": "${jniInclude}/armeabi-v7a/",
+            "FFMPEG_LIB_DIR_ARMV7_LINUX_ANDROIDEABI"    : "${jniLibs}/armeabi-v7a/",
+
+            "FFMPEG_INCLUDE_DIR_I686_LINUX_ANDROID"     : "${jniInclude}/x86/",
+            "FFMPEG_LIB_DIR_I686_LINUX_ANDROID"         : "${jniLibs}/x86/",
+
+
+    ]
+
+
+}
 dependencies {
 
     implementation 'com.google.android.gms:play-services-wearable:17.1.0'
+    implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'org.tensorflow:tensorflow-lite:2.11.0'
+    implementation 'org.tensorflow:tensorflow-lite-api:2.11.0'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.4.3'
+    implementation 'org.tensorflow:tensorflow-lite-support-api:0.4.3'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
 }

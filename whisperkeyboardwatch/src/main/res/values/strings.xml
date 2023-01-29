@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">WhisperKeyboardWatch</string>
+    <string name="app_name">Whisper Voice Keyboard</string>
+    <string name="VoiceKeyboardService_label">Whisper Voice Keyboard</string>
+    <string name="VoiceKeyboardService_toggleOffLabel">Record</string>
+    <string name="VoiceKeyboardService_toggleOnLabel">Transcribe</string>
+    <string name="VoiceKeyboardService_pauseLabel">Pause</string>
+    <string name="VoiceKeyboardService_resumeLabel">Resume</string>
+    <string name="VoiceKeyboardService_cancelLabel">Cancel</string>
+    <string name="VoiceKeyboardService_backspaceLabel">Del</string>
+    <string name="VoiceKeyboardService_newlineLabel">\\n</string>
+    <string name="return_key_img_txt">Return Key</string>
+    <string name="delete_key_image_text">Delete Key</string>
+    <string name="toast_grant_microphone_permission">Please Grant Microphone Permission</string>
+    <string name="wizard_completed">Keyboard Now Available In Keyboard Switcher</string>
+    <string name="enable_input_method">1. Enable Input Method</string>
+    <string name="grant_microphone_permission">2. Grant Microphone Permission</string>
+    <string name="exit">Done!</string>
 </resources>

@@ -3,11 +3,46 @@
 
     <uses-feature android:name="android.hardware.type.watch" />
 
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/mic"
         android:label="@string/app_name"
+        android:roundIcon="@drawable/mic"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault" />
+        android:theme="@style/Theme.WhisperVoiceKeyboard">
+
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+        <activity
+            android:name="com.mjm.whisperkeyboardwatch.Wizard"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.wizard"
+                android:value="" />
+        </activity>
+
+        <service
+            android:name="com.mjm.whisperkeyboardwatch.VoiceKeyboardInputMethodService"
+            android:exported="true"
+            android:label="@string/VoiceKeyboardService_label"
+            android:permission="android.permission.BIND_INPUT_METHOD">
+            <intent-filter>
+                <action android:name="android.view.InputMethod" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
+        </service>
+
+    </application>
 
 </manifest>

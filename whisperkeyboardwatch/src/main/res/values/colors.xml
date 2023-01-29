@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="blue_50">#FFE1F5FE</color>
+    <color name="blue_100">#FFB3E5FC</color>
+    <color name="blue_200">#FF81D4FA</color>
+    <color name="blue_500">#FF03A9F4</color>
+    <color name="blue_700">#FF0288D1</color>
+    <color name="light_light">#F8F8F8</color>
+    <color name="light_dark">#DEDEDE</color>
+    <color name="dark_light">#2F343F</color>
+    <color name="dark_dark">#262B33</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
