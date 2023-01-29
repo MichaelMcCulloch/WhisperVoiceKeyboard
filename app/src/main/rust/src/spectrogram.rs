@@ -65,7 +65,7 @@ fn hann_window(fft_len: usize) -> Vec<f32> {
 
 fn get_fft_plan(fft_length: usize) -> Arc<dyn Fft<f32>> {
     // Create the FFT process.
-    #[cfg(target_arch = "x86_64")]
+    #[cfg(not(target_arch = "aarch64"))]
     let mut fft_planner = {
         use rustfft::FftPlanner;
         FftPlanner::new()
