@@ -1,6 +1,6 @@
 # Whisper-based Voice Keyboard
 
-DEPRECATED! I wrote this before i was made aware of [whisper.cpp](https://github.com/ggerganov/whisper.cpp), which entirely obsolesces this project.
+TODO! I wrote this before i was made aware of [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Need to integrate that, into this, or build a new one on that.
 
 Integration of the OpenAI speech to text model into Android.
 
