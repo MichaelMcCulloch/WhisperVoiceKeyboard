@@ -29,6 +29,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.example.WhisperVoiceKeyboard.R;
 
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.flex.FlexDelegate;
+import org.tensorflow.lite.gpu.GpuDelegate;
+import org.tensorflow.lite.nnapi.NnApiDelegate;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,10 +43,13 @@ import java.util.Optional;
 
 public class VoiceKeyboardInputMethodService extends InputMethodService {
 
-    private Interpreter _whisperInterpreter;
+    private Interpreter _nnapiEncoder;
+    private Interpreter _nnapiDecoder;
     private Dictionary _dictionary;
 
-    private static final String WHISPER_TFLITE = "whisper.tflite";
+
+    private static final String WHISPER_ENCODER = "nnmodel/nyadia/whisper-encoder.tflite";
+    private static final String WHISPER_DECODER_LANGUAGE = "nnmodel/nyadia/whisper-decoder_language.tflite";
 
     private static final boolean LOG_AND_DRAW = false;
 
@@ -54,25 +60,40 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         super.onCreate();
 
 
+        Interpreter.Options nnapiOptions = new Interpreter.Options();
+        NnApiDelegate nnapiDelegate = new NnApiDelegate();
+        FlexDelegate flexDelegate = new FlexDelegate();
+        GpuDelegate gpuDelegate = new GpuDelegate();
+
+
+        nnapiOptions.addDelegate(flexDelegate);
+        nnapiOptions.addDelegate(gpuDelegate);
+        nnapiOptions.addDelegate(nnapiDelegate);
+
+
+        nnapiOptions.setNumThreads(0);
+        nnapiOptions.setUseXNNPACK(true);
+        nnapiOptions.setUseNNAPI(true);
+
         try {
+
+
+            MappedByteBuffer whisper_encoder = loadWhisperModel(getAssets(), WHISPER_ENCODER);
+            MappedByteBuffer whisper_decoder_language = loadWhisperModel(getAssets(), WHISPER_DECODER_LANGUAGE);
+
+            _nnapiEncoder = new Interpreter(whisper_encoder, nnapiOptions);
+            _nnapiDecoder = new Interpreter(whisper_decoder_language, nnapiOptions);
+
             Vocab vocab = ExtractVocab.extractVocab(getAssets().open("filters_vocab_gen.bin"));
             HashMap<String, String> phraseMappings = new HashMap<>();
-
-
             _dictionary = new Dictionary(vocab, phraseMappings);
-            MappedByteBuffer model = loadWhisperModel(getAssets());
 
-            Interpreter.Options options = new Interpreter.Options();
-
-            options.setUseXNNPACK(true);
-            options.setNumThreads(8);
-
-            _whisperInterpreter = new Interpreter(model, options);
-
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            System.exit(-1);
         }
+
+
         RustLib.init(getAssets());
     }
 
@@ -188,16 +209,51 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
     private String transcribeAudio(float[] byteBuffer) {
         int[] inputShape = {1, 80, 3000};
 
-        float[][][] reshapedFloats = reshapeInput(byteBuffer, inputShape);
-        int[][] output = new int[1][224];
+        Map<String, Object> inputsEncoder = new HashMap<>();
+        Map<String, Object> outputsEncoder = new HashMap<>();
+        Map<String, Object> inputsDecoder = new HashMap<>();
+        Map<String, Object> outputsDecoder = new HashMap<>();
 
-        Map<String, Object> inputs = new HashMap<>();
-        inputs.put("input_features", reshapedFloats);
-        Map<String, Object> outputs = new HashMap<>();
-        outputs.put("sequences", output);
+        String signatureKey = "serving_default";
+        String[] nnapiEncoderSignatureInputs = _nnapiEncoder.getSignatureInputs(signatureKey);
+        String[] nnapiEncoderSignatureOutputs = _nnapiEncoder.getSignatureOutputs(signatureKey);
+        String[] nnapiDecoderSignatureInputs = _nnapiDecoder.getSignatureInputs(signatureKey);
+        String[] nnapiDecoderSignatureOutputs = _nnapiDecoder.getSignatureOutputs(signatureKey);
 
-        _whisperInterpreter.runSignature(inputs, outputs, "serving_default");
-        String whisperOutput = _dictionary.tokensToString(output);
+        String encoderInputKey0 = nnapiEncoderSignatureInputs[0];
+        String encoderOutputKey0 = nnapiEncoderSignatureOutputs[0];
+        String decoderInputKey0 = nnapiDecoderSignatureInputs[0];
+        String decoderInputKey1 = nnapiDecoderSignatureInputs[1];
+        String decoderOutputKey0 = nnapiDecoderSignatureOutputs[0];
+
+        inputsEncoder.put(encoderInputKey0, reshapeInput(byteBuffer, inputShape));
+        float[][][] encoder_output = new float[1][1500][384];
+        outputsEncoder.put(encoderOutputKey0, encoder_output);
+
+
+        _nnapiEncoder.runSignature(inputsEncoder, outputsEncoder, signatureKey);
+
+
+        long[][][] encoder_output_int = new long[1][1500][384];
+
+        inputsDecoder.put(decoderInputKey0, encoder_output_int);
+
+        float[][] decoder_ids = new float[1][384];
+        decoder_ids[0][0] = 50258;
+        decoder_ids[0][1] = 50266;
+        decoder_ids[0][2] = 50358;
+        decoder_ids[0][3] = 50363;
+        inputsDecoder.put(decoderInputKey1, decoder_ids);
+
+        int[] shape = new int[2];
+        shape[0] = 1;
+        shape[1] = 4;
+        _nnapiDecoder.resizeInput(1, shape);
+        float[][] output = new float[1][224];
+        outputsDecoder.put(decoderOutputKey0, output);
+
+        _nnapiDecoder.runSignature(inputsDecoder, outputsDecoder, signatureKey);
+        String whisperOutput = _dictionary.tokensToString(new int[1][224]);
         return _dictionary.injectTokens(whisperOutput);
     }
 
@@ -217,9 +273,9 @@ public class VoiceKeyboardInputMethodService extends InputMethodService {
         return reshapedFloats;
     }
 
-    private static MappedByteBuffer loadWhisperModel(AssetManager assets)
+    private static MappedByteBuffer loadWhisperModel(AssetManager assets, String modelName)
             throws IOException {
-        AssetFileDescriptor fileDescriptor = assets.openFd(WHISPER_TFLITE);
+        AssetFileDescriptor fileDescriptor = assets.openFd(modelName);
         FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
         FileChannel fileChannel = inputStream.getChannel();
         long startOffset = fileDescriptor.getStartOffset();
