@@ -74,8 +74,8 @@ public class Transcriber {
         int startOfTranscript = _dictionary.getStartOfTranscript();
         long[][] decoder_ids = new long[1][384];
         decoder_ids[0][0] = startOfTranscript;
-        decoder_ids[0][1] = startOfTranscript + 1; //+ lang;
-        decoder_ids[0][2] = Vocab.TOKEN_SPEECH_TO_TEXT;
+        decoder_ids[0][1] = 50259; //+ lang;
+        decoder_ids[0][2] = Vocab.TRANSCRIBE;
         decoder_ids[0][3] = noTimestamps;
         int prefixLen = 4;
 

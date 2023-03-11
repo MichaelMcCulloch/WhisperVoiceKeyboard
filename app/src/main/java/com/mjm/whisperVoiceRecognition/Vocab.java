@@ -13,8 +13,8 @@ public class Vocab {
     public int token_beg;
     public HashMap<Integer, String> id_to_token;
 
-    public static final int TOKEN_SPEECH_TO_TEXT = 50358;
-    public static final int TOKEN_UNKNOWN_PURPOSE = 50359;
+    public static final int TRANSLATE = 50358;
+    public static final int TRANSCRIBE = 50359;
 
     public Vocab() {
         // Magic Numbers evidently derived from https://github.com/ggerganov/whisper.cpp
