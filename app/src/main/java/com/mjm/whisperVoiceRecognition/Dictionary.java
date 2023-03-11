@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class Dictionary {
@@ -23,7 +24,7 @@ public class Dictionary {
      * @return String composed of words of the tokens in the array
      */
     @NonNull
-    public String tokensToString(long[] output) {
+    public String tokensToString(Collection<Long> output) {
         StringBuilder sb = new StringBuilder();
         for (long token : output) {
             if (token == _vocab.tokenEndOfTranscript) {

@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 public class Transcriber {
     public static final String SIGNATURE_KEY = "serving_default";
@@ -37,7 +38,7 @@ public class Transcriber {
         GpuDelegate gpuDelegate = new GpuDelegate();
 
 
-//        nnapiOptions.addDelegate(flexDelegate);
+        nnapiOptions.addDelegate(flexDelegate);
 //        nnapiOptions.addDelegate(gpuDelegate);
 //        nnapiOptions.addDelegate(nnapiDelegate);
 
@@ -70,14 +71,15 @@ public class Transcriber {
         float[][][] encoderOutputBuffer = new float[1][1500][384];
         float[][][] decoderOutputBuffer = new float[1][384][51865];
 
-        int noTimestamps = _dictionary.getNotTimeStamps();
-        int startOfTranscript = _dictionary.getStartOfTranscript();
-        long[][] decoder_ids = new long[1][384];
-        decoder_ids[0][0] = startOfTranscript;
-        decoder_ids[0][1] = 50259; //+ lang;
-        decoder_ids[0][2] = Vocab.TRANSCRIBE;
-        decoder_ids[0][3] = noTimestamps;
-        int prefixLen = 4;
+        long[][] decoderInputIds = new long[1][384];
+        long[] prefix = {_dictionary.getStartOfTranscript(), 50259, Vocab.TRANSLATE, _dictionary.getNotTimeStamps()};
+        int prefixLen = prefix.length;
+        System.arraycopy(prefix, 0, decoderInputIds[0], 0, prefixLen);
+
+        Vector<Long> tokenStream = new Vector<>(4);
+        for (int p = 0; p < prefixLen; p++) {
+            tokenStream.add(prefix[p]);
+        }
 
 
         Map<String, Object> encoderInputsMap = new HashMap<String, Object>();
@@ -94,7 +96,7 @@ public class Transcriber {
         Map<String, Object> decoderInputsMap = new HashMap<String, Object>();
         String[] decoderInputs = _decoder.getSignatureInputs(SIGNATURE_KEY);
         decoderInputsMap.put(decoderInputs[0], encoderOutputBuffer);
-        decoderInputsMap.put(decoderInputs[1], decoder_ids);
+        decoderInputsMap.put(decoderInputs[1], decoderInputIds);
 
         Map<String, Object> decoderOutputsMap = new HashMap<String, Object>();
         String[] decoderOutputs = _decoder.getSignatureOutputs(SIGNATURE_KEY);
@@ -104,37 +106,41 @@ public class Transcriber {
         while (nextToken != _dictionary.getEndOfTranscript()) {
             _decoder.resizeInput(1, new int[]{1, prefixLen});
             _decoder.runSignature(decoderInputsMap, decoderOutputsMap, SIGNATURE_KEY);
-            nextToken = maxTokenIndex(decoderOutputBuffer, prefixLen);
+            int[] cleaned = argmax(decoderOutputBuffer[0]);
 
-            decoder_ids[0][prefixLen] = nextToken;
-            Log.i("transcribeAudio", "token: " + nextToken);
-            Log.i("transcribeAudio", "token: " + Arrays.toString(decoder_ids[0]));
+            Log.i("transcribeAudio", "index: " + prefixLen);
+            Log.i("transcribeAudio", "cleaned: " + Arrays.toString(cleaned));
+            nextToken = cleaned[prefixLen - 1];
+
+            tokenStream.add((long) nextToken);
+            decoderInputIds[0][prefixLen] = nextToken;
+
+            Log.i("transcribeAudio", "token: " + Arrays.toString(decoderInputIds[0]));
             prefixLen += 1;
 
         }
 
-        long[] output = new long[prefixLen];
-        System.arraycopy(decoder_ids[0], 0, output, 0, prefixLen);
 
 //        _dictionary.logAllTokens();
 
-        String whisperOutput = _dictionary.tokensToString(output);
+        String whisperOutput = _dictionary.tokensToString(tokenStream);
         return _dictionary.injectTokens(whisperOutput);
     }
 
-    private int maxTokenIndex(float[][][] decoderOutputBuffer, int index) {
-        float[] sentence = decoderOutputBuffer[0][index];
-
-
-        int lastTokenIndex = 0;
-        float maxValue = Float.MIN_VALUE;
-        for (int i = 0; i < sentence.length; i++) {
-            if (sentence[i] > maxValue) {
-                maxValue = sentence[i];
-                lastTokenIndex = i;
+    private int[] argmax(float[][] decoderOutputBuffer) {
+        int[] result = new int[decoderOutputBuffer.length];
+        for (int i = 0; i < result.length; i++) {
+            int maxIndex = 0;
+            for (int j = 0; j < decoderOutputBuffer[i].length; j++) {
+                if (decoderOutputBuffer[i][j] > decoderOutputBuffer[i][maxIndex]) {
+                    maxIndex = j;
+                }
             }
+
+            result[i] = maxIndex;
         }
-        return lastTokenIndex;
+
+        return result;
     }
 
     private static MappedByteBuffer loadWhisperModel(AssetManager assets, String modelName)
