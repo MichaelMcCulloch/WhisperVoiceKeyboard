@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
@@ -12,6 +13,15 @@
         android:roundIcon="@drawable/mic"
         android:supportsRtl="true"
         android:theme="@style/Theme.WhisperVoiceKeyboard">
+        <uses-native-library
+            android:name="libOpenCL-pixel.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libGLES_mali.so"
+            android:required="false" />
 
         <activity
             android:name="com.mjm.whisperVoiceRecognition.Wizard"
@@ -37,6 +47,8 @@
             <meta-data
                 android:name="android.view.im"
                 android:resource="@xml/method" />
+
+
         </service>
 
     </application>

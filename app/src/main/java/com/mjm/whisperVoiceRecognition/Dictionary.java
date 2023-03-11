@@ -23,14 +23,14 @@ public class Dictionary {
      * @return String composed of words of the tokens in the array
      */
     @NonNull
-    public String tokensToString(int[][] output) {
+    public String tokensToString(long[] output) {
         StringBuilder sb = new StringBuilder();
-        for (int token : output[0]) {
-            if (token == _vocab.token_eot) {
+        for (long token : output) {
+            if (token == _vocab.tokenEndOfTranscript) {
                 break;
             }
-            if (token != 50257 && token != 50362) {
-                String word = _vocab.id_to_token.get(token);
+            if (token != _vocab.tokenStartOfTranscript && token != _vocab.tokenNoTimeStamps) {
+                String word = _vocab.id_to_token.get((int) token);
                 Log.i("tokenization", "token: " + token + " word " + word);
                 sb.append(word);
             }
@@ -38,6 +38,13 @@ public class Dictionary {
         return sb.toString();
     }
 
+
+    public void logAllTokens() {
+        for (int token = 0; token <= 51865; token += 1) {
+            String word = _vocab.id_to_token.get(token);
+            Log.i("tokenization", "token: " + token + " word " + word);
+        }
+    }
 
     /**
      * This method takes a string as an argument and replaces key phrases with special tokens.
@@ -56,4 +63,15 @@ public class Dictionary {
         return result;
     }
 
+    public int getNotTimeStamps() {
+        return _vocab.tokenNoTimeStamps;
+    }
+
+    public int getStartOfTranscript() {
+        return _vocab.tokenStartOfTranscript;
+    }
+
+    public int getEndOfTranscript() {
+        return _vocab.tokenEndOfTranscript;
+    }
 }

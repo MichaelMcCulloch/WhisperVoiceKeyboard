@@ -5,22 +5,25 @@ import java.util.HashMap;
 public class Vocab {
 
     public int n_vocab;
-    public int token_eot;
-    public int token_sot;
+    public int tokenEndOfTranscript;
+    public int tokenStartOfTranscript;
     public int token_prev;
     public int token_solm;
-    public int token_not;
+    public int tokenNoTimeStamps;
     public int token_beg;
     public HashMap<Integer, String> id_to_token;
+
+    public static final int TOKEN_SPEECH_TO_TEXT = 50358;
+    public static final int TOKEN_UNKNOWN_PURPOSE = 50359;
 
     public Vocab() {
         // Magic Numbers evidently derived from https://github.com/ggerganov/whisper.cpp
         this.n_vocab = 51864;
-        this.token_eot = 50256;
-        this.token_sot = 50257;
+        this.tokenEndOfTranscript = 50256;
+        this.tokenStartOfTranscript = 50257;
         this.token_prev = 50360;
         this.token_solm = 50361;
-        this.token_not = 50362;
+        this.tokenNoTimeStamps = 50362;
         this.token_beg = 50363;
         this.id_to_token = new HashMap<Integer, String>();
     }
