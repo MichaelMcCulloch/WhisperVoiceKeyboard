@@ -30,8 +30,8 @@ public class Dictionary {
             if (token == _vocab.tokenEndOfTranscript) {
                 break;
             }
-            if (token != _vocab.tokenStartOfTranscript && token != _vocab.tokenNoTimeStamps) {
-                String word = _vocab.id_to_token.get((int) token);
+            String word = _vocab.id_to_token.get((int) token);
+            if (word != null) {
                 Log.i("tokenization", "token: " + token + " word " + word);
                 sb.append(word);
             }

@@ -2,7 +2,6 @@ package com.mjm.whisperVoiceRecognition;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -15,7 +14,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -81,24 +79,23 @@ public class Transcriber {
             tokenStream.add(prefix[p]);
         }
 
-
-        Map<String, Object> encoderInputsMap = new HashMap<String, Object>();
+        Map<String, Object> encoderInputsMap = new HashMap<>();
         String[] encoderInputs = _encoder.getSignatureInputs(SIGNATURE_KEY);
         encoderInputsMap.put(encoderInputs[0], reshape(byteBuffer, ENCODER_INPUT_SHAPE));
 
-        Map<String, Object> encoderOutputsMap = new HashMap<String, Object>();
+        Map<String, Object> encoderOutputsMap = new HashMap<>();
         String[] encoderOutputs = _encoder.getSignatureOutputs(SIGNATURE_KEY);
         encoderOutputsMap.put(encoderOutputs[0], encoderOutputBuffer);
 
         _encoder.runSignature(encoderInputsMap, encoderOutputsMap, SIGNATURE_KEY);
 
 
-        Map<String, Object> decoderInputsMap = new HashMap<String, Object>();
+        Map<String, Object> decoderInputsMap = new HashMap<>();
         String[] decoderInputs = _decoder.getSignatureInputs(SIGNATURE_KEY);
         decoderInputsMap.put(decoderInputs[0], encoderOutputBuffer);
         decoderInputsMap.put(decoderInputs[1], decoderInputIds);
 
-        Map<String, Object> decoderOutputsMap = new HashMap<String, Object>();
+        Map<String, Object> decoderOutputsMap = new HashMap<>();
         String[] decoderOutputs = _decoder.getSignatureOutputs(SIGNATURE_KEY);
         decoderOutputsMap.put(decoderOutputs[0], decoderOutputBuffer);
 
@@ -106,41 +103,29 @@ public class Transcriber {
         while (nextToken != _dictionary.getEndOfTranscript()) {
             _decoder.resizeInput(1, new int[]{1, prefixLen});
             _decoder.runSignature(decoderInputsMap, decoderOutputsMap, SIGNATURE_KEY);
-            int[] cleaned = argmax(decoderOutputBuffer[0]);
-
-            Log.i("transcribeAudio", "index: " + prefixLen);
-            Log.i("transcribeAudio", "cleaned: " + Arrays.toString(cleaned));
-            nextToken = cleaned[prefixLen - 1];
-
+            nextToken = argmax(decoderOutputBuffer[0], prefixLen - 1);
             tokenStream.add((long) nextToken);
             decoderInputIds[0][prefixLen] = nextToken;
 
-            Log.i("transcribeAudio", "token: " + Arrays.toString(decoderInputIds[0]));
             prefixLen += 1;
 
         }
-
-
-//        _dictionary.logAllTokens();
 
         String whisperOutput = _dictionary.tokensToString(tokenStream);
         return _dictionary.injectTokens(whisperOutput);
     }
 
-    private int[] argmax(float[][] decoderOutputBuffer) {
-        int[] result = new int[decoderOutputBuffer.length];
-        for (int i = 0; i < result.length; i++) {
-            int maxIndex = 0;
-            for (int j = 0; j < decoderOutputBuffer[i].length; j++) {
-                if (decoderOutputBuffer[i][j] > decoderOutputBuffer[i][maxIndex]) {
-                    maxIndex = j;
-                }
-            }
+    private int argmax(float[][] decoderOutputBuffer, int index) {
 
-            result[i] = maxIndex;
+        int maxIndex = 0;
+        for (int j = 0; j < decoderOutputBuffer[index].length; j++) {
+            if (decoderOutputBuffer[index][j] > decoderOutputBuffer[index][maxIndex]) {
+                maxIndex = j;
+            }
         }
 
-        return result;
+        return maxIndex;
+
     }
 
     private static MappedByteBuffer loadWhisperModel(AssetManager assets, String modelName)
